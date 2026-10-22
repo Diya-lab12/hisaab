@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { analyze } from "@/lib/analyze";
+import { analyzeWithLLM } from "@/lib/llm";
 import { ComplaintInput, filingInfo, missingFields, parseAmount } from "@/lib/checks";
 import { assembleNotice } from "@/lib/notice";
 
@@ -21,7 +22,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: "need_more_info", missing: missing.map((m) => `Please provide ${m}.`) });
   }
 
-  const result = analyze(input);
+  let result;
+  try {
+    result = await analyzeWithLLM(input);
+  } catch (e) {
+    console.error("AI analysis failed, using rule-based fallback:", e);
+    result = analyze(input);
+  }
   if (result.status !== "covered") return NextResponse.json(result);
 
   const { noticeBody, ...rest } = result;

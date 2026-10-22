@@ -5,6 +5,9 @@ import { analyzeWithLLM } from "@/lib/llm";
 import { ComplaintInput, filingInfo, invalidFields, missingFields, parseAmount } from "@/lib/checks";
 import { assembleNotice } from "@/lib/notice";
 
+// The AI call can take several seconds; give the serverless function room (Vercel).
+export const maxDuration = 60;
+
 const FIELDS = ["name", "address", "contact", "company", "amount", "incidentDate", "description"] as const;
 
 export async function POST(req: Request) {

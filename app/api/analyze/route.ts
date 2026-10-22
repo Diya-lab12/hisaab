@@ -50,6 +50,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
   const input = sanitise(raw && typeof raw === "object" ? raw : {});
+  const proceed = raw?.proceed === true; // the person chose to continue without answering more questions
 
 
   // 1. Obvious non-consumer matters get a clear "not covered" even if other fields are blank.
@@ -73,12 +74,17 @@ export async function POST(req: Request) {
   let source: "ai" | "rules" = "ai";
   let removedCitations = 0;
   try {
-    const out = await analyzeWithLLM(input);
+    const out = await analyzeWithLLM(input, { proceed });
     result = out.analysis;
     removedCitations = out.removedCitations;
+    if (proceed && result.status === "need_more_info") {
+      // They chose to continue, so never block them: use the rule-based draft.
+      result = analyze(input, { force: true });
+      source = "rules";
+    }
   } catch (e) {
     console.error("AI analysis failed, using rule-based fallback:", e);
-    result = analyze(input);
+    result = analyze(input, { force: proceed });
     source = "rules";
   }
 

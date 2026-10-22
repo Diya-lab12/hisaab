@@ -502,3 +502,4 @@ ul.checks { list-style: none; margin: 0; padding: 0 !important; display: grid; g
 .adv-status { font-weight: 700; color: var(--primary); }
 .adv-status.declined { color: var(--amber); }
 .badge.st-approved { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
+.callout textarea { width: 100%; font: inherit; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--surface); color: inherit; margin-top: 4px; }

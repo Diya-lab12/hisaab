@@ -160,7 +160,7 @@ function wordCount(s: string): number {
   return s.trim().split(/\s+/).filter(Boolean).length;
 }
 
-export function analyze(input: ComplaintInput): Analysis {
+export function analyze(input: ComplaintInput, opts: { force?: boolean } = {}): Analysis {
   const text = input.description.toLowerCase();
 
   for (const n of NOT_COVERED) {
@@ -175,7 +175,11 @@ export function analyze(input: ComplaintInput): Analysis {
 
   const preferred = CATEGORIES.find((c) => c.name === PREFERRED[input.issueType ?? ""]);
   if (!scored.length && preferred && wordCount(input.description) >= 4) scored.push({ c: preferred, score: 1 });
-  if (!scored.length || wordCount(input.description) < 4) {
+  if (opts.force && !scored.length) {
+    const generic = CATEGORIES.find((c) => c.name === "deficient service");
+    if (generic) scored.push({ c: generic, score: 1 });
+  }
+  if (!scored.length || (wordCount(input.description) < 4 && !opts.force)) {
     return {
       status: "need_more_info",
       missing: [

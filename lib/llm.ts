@@ -11,6 +11,7 @@ function strArr(v: unknown): string[] {
 
 export async function analyzeWithLLM(
   input: ComplaintInput,
+  opts: { proceed?: boolean } = {},
 ): Promise<{ analysis: Analysis; removedCitations: number }> {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) throw new Error("OPENROUTER_API_KEY not set");
@@ -24,7 +25,7 @@ export async function analyzeWithLLM(
       temperature: 0.2,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: buildSystemPrompt() },
+        { role: "system", content: buildSystemPrompt(opts.proceed) },
         { role: "user", content: buildUserMessage(input) },
       ],
     }),

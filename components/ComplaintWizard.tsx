@@ -32,6 +32,7 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
   const [storage, setStorage] = useState<StorageKind>(existing?.storage ?? "device");
   const [loading, setLoading] = useState(false);
   const [more, setMore] = useState<string[] | null>(null);
+  const [extra, setExtra] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [outside, setOutside] = useState<Result | null>(null);
   const [saved, setSaved] = useState<Saved>(null);
@@ -92,7 +93,7 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
       };
     const mem = summarise(rec?.id ?? NEW_SCOPE);
     const next: CaseRecord = {
-      ...base, ...patch, id, storage, issue: v.issueType ?? "", input: v, step: Math.max(base.step, step),
+      ...base, ...patch, id, storage, issue: v.issueType ?? "", input: patch.input ?? v, step: Math.max(base.step, step),
       evidence: { ...base.evidence, ...mem }, events: [...base.events, ...events],
     };
     const where = saveCase(next);
@@ -112,15 +113,21 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
     persist({});
   }
 
-  async function submit() {
+  async function submit(opts: { extra?: string; proceed?: boolean } = {}) {
     setLoading(true);
     setMore(null);
     setError(null);
+    // Anything the person adds in answer to the AI's questions becomes part of their description.
+    const payload: ComplaintInput = opts.extra?.trim() ? { ...v, description: `${v.description.trim()}\n\nMore detail: ${opts.extra.trim()}` } : v;
+    if (payload !== v) {
+      setV(payload);
+      setExtra("");
+    }
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(v), // text fields only: pictures never leave the browser
+        body: JSON.stringify({ ...payload, proceed: opts.proceed === true }), // text fields only: pictures never leave the browser
       });
       const data = (await res.json()) as Result & { error?: string };
       if (!res.ok) setError(data.error ?? "Something went wrong. Your answers are still here, so try again.");
@@ -130,6 +137,7 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
         const regenerated = Boolean(rec?.result);
         const saved = persist(
           {
+            input: payload,
             result: data,
             noticeText: data.notice ?? "",
             status: rec && rec.status !== "draft" && rec.status !== "ready" ? rec.status : "ready",
@@ -422,9 +430,16 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
             )}
             {more && (
               <div className="callout warn" role="status">
-                <strong>We need a bit more information</strong>
+                <strong>The AI would like a little more detail</strong>
+                <p className="fine">Answer below if you can, or carry on without. Either way is fine, and the advocate checks everything before it goes out.</p>
                 <ul>{more.map((m, i) => <li key={i}>{m}</li>)}</ul>
-                <button type="button" className="link" onClick={() => setStep(0)}>Edit my answers</button>
+                <label className="side-label" htmlFor="more-extra">Your answer (optional)</label>
+                <textarea id="more-extra" rows={4} value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="Type whatever you know. Short is fine." />
+                <div className="stack-row">
+                  <button type="button" className="button small primary" disabled={!extra.trim() || loading} onClick={() => void submit({ extra })}>Add this and check again</button>
+                  <button type="button" className="button small" disabled={loading} onClick={() => void submit({ proceed: true })}>Continue without answering</button>
+                  <button type="button" className="link" onClick={() => setStep(0)}>Edit my answers</button>
+                </div>
               </div>
             )}
           </>

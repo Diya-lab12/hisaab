@@ -130,6 +130,11 @@ export function detectIndustry(company: string, description: string): IndustryId
   return "other";
 }
 
+export function industryFor(company: string, description: string, fallback: IndustryId): IndustryId {
+  const found = detectIndustry(company, description);
+  return found === "other" ? fallback : found;
+}
+
 export function industryInfo(id: string) {
   const info = INDUSTRIES[(id as IndustryId) in INDUSTRIES ? (id as IndustryId) : "other"];
   return info;

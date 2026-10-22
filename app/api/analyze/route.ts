@@ -4,12 +4,13 @@ import type { Analysis } from "@/lib/analyze";
 import { analyzeWithLLM } from "@/lib/llm";
 import { ComplaintInput, filingInfo, invalidFields, missingFields, parseAmount } from "@/lib/checks";
 import { assembleNotice } from "@/lib/notice";
-import { COMMON_TIP, INDUSTRIES, detectIndustry } from "@/lib/categories";
+import { cleanIssue, ISSUES } from "@/lib/issues";
+import { COMMON_TIP, INDUSTRIES, industryFor } from "@/lib/categories";
 
 // The AI call can take several seconds; give the serverless function room (Vercel).
 export const maxDuration = 60;
 
-const FIELDS = ["name", "address", "contact", "company", "amount", "incidentDate", "description"] as const;
+const FIELDS = ["name", "address", "contact", "company", "amount", "incidentDate", "description", "issueType"] as const;
 
 export async function POST(req: Request) {
   let raw: Partial<Record<(typeof FIELDS)[number], unknown>>;
@@ -21,6 +22,7 @@ export async function POST(req: Request) {
   const input = Object.fromEntries(
     FIELDS.map((k) => [k, typeof raw[k] === "string" ? (raw[k] as string) : ""]),
   ) as ComplaintInput;
+  input.issueType = cleanIssue(input.issueType);
 
   // 1. Obvious non-consumer matters get a clear "not covered" even if other fields are blank.
   if (input.description.trim()) {
@@ -55,7 +57,8 @@ export async function POST(req: Request) {
   if (result.status !== "covered") return NextResponse.json({ ...result, source, removedCitations });
 
   const { noticeBody, ...rest } = result;
-  const industryId = detectIndustry(input.company, input.description);
+  const fallback = ISSUES.find((i) => i.id === input.issueType)?.fallbackIndustry ?? "other";
+  const industryId = industryFor(input.company, input.description, fallback);
   const industry = INDUSTRIES[industryId];
   return NextResponse.json({
     ...rest,

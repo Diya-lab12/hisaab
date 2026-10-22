@@ -1,5 +1,5 @@
 "use client";
-import { useId, useRef, useState } from "react";
+import { useId, useState } from "react";
 import { MAX_IMAGES, addEvidence, clearEvidence, removeEvidence, useEvidence } from "@/lib/evidence";
 
 export default function EvidenceUploader({
@@ -14,12 +14,11 @@ export default function EvidenceUploader({
   const images = useEvidence();
   const [problems, setProblems] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  const input = useRef<HTMLInputElement>(null);
+  const [over, setOver] = useState(false);
   const id = useId();
+  const full = images.length >= MAX_IMAGES;
 
-  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
-    e.target.value = ""; // lets the same file be picked again later
+  async function take(files: File[]) {
     if (!files.length) return;
     setBusy(true);
     setProblems(await addEvidence(files));
@@ -29,58 +28,85 @@ export default function EvidenceUploader({
   return (
     <div className="evidence">
       {!compact && !!suggestions?.length && (
+        <div className="suggest">
+          <p><strong>Pictures that help</strong>{suggestionsLabel ? ` for a ${suggestionsLabel.toLowerCase()} complaint` : ""}</p>
+          <ul>{suggestions.map((s, i) => <li key={i}>{s}</li>)}</ul>
+        </div>
+      )}
+
+      <input
+        id={id}
+        type="file"
+        accept="image/*"
+        multiple
+        className="sr-only"
+        disabled={busy || full}
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          e.target.value = ""; // allows picking the same file again
+          void take(files);
+        }}
+      />
+      <label
+        htmlFor={id}
+        className={`drop ${over ? "over" : ""} ${full ? "full" : ""} ${compact ? "small" : ""}`}
+        onDragOver={(e) => { e.preventDefault(); if (!full) setOver(true); }}
+        onDragLeave={() => setOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setOver(false);
+          if (!full) void take(Array.from(e.dataTransfer.files));
+        }}
+      >
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+          <path d="M12 16V5m0 0l-4 4m4-4l4 4M5 19h14" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <span className="drop-t">
+          {busy ? "Adding…" : full ? `You've added the maximum of ${MAX_IMAGES}` : compact ? "Add pictures" : "Drop pictures here, or choose files"}
+        </span>
+        {!compact && <span className="drop-d">Screenshots and photos, JPG or PNG. Up to {MAX_IMAGES}.</span>}
+      </label>
+
+      {problems.length > 0 && <ul className="problems" role="alert">{problems.map((p, i) => <li key={i}>{p}</li>)}</ul>}
+
+      {images.length > 0 && (
         <>
-          <p className="fine"><strong>Good pictures to add</strong>{suggestionsLabel ? ` (${suggestionsLabel})` : ""}:</p>
-          <ul className="suggest">{suggestions.map((s, i) => <li key={i}>{s}</li>)}</ul>
+          <div className="thumb-head">
+            <span>{images.length} of {MAX_IMAGES} added</span>
+            <button type="button" className="link" onClick={() => { clearEvidence(); setProblems([]); }}>Remove all</button>
+          </div>
+          <ul className="thumbs">
+            {images.map((img) => (
+              <li key={img.id}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img.dataUrl} alt={`Evidence: ${img.name}`} />
+                <span className="cap">{img.name}</span>
+                <button type="button" aria-label={`Remove ${img.name}`} onClick={() => removeEvidence(img.id)}>×</button>
+              </li>
+            ))}
+          </ul>
         </>
       )}
 
-      <div className="pickrow">
-        <input
-          ref={input}
-          id={id}
-          type="file"
-          accept="image/*"
-          multiple
-          className="sr-only"
-          onChange={onPick}
-          disabled={busy || images.length >= MAX_IMAGES}
-        />
-        <label htmlFor={id} className={`button ${images.length >= MAX_IMAGES ? "disabled" : ""}`}>
-          {busy ? "Adding…" : images.length ? "Add more pictures" : "Add pictures"}
-        </label>
-        <span className="fine">{images.length} of {MAX_IMAGES} added</span>
-        {images.length > 0 && (
-          <button type="button" className="quiet" onClick={() => { clearEvidence(); setProblems([]); }}>Remove all</button>
-        )}
-      </div>
-
-      {problems.length > 0 && (
-        <ul className="problems" role="alert">{problems.map((p, i) => <li key={i}>{p}</li>)}</ul>
-      )}
-
-      {images.length > 0 && (
-        <ul className="thumbs">
-          {images.map((img) => (
-            <li key={img.id}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img.dataUrl} alt={`Evidence: ${img.name}`} />
-              <button type="button" aria-label={`Remove ${img.name}`} onClick={() => removeEvidence(img.id)}>×</button>
-            </li>
-          ))}
-        </ul>
-      )}
-
       {!compact && (
-        <details className="privacy" open>
-          <summary>Keep your pictures private</summary>
-          <ul>
-            <li><strong>Your pictures stay in this browser tab.</strong> Hisaab doesn&apos;t upload or store them, and they are never sent to the AI. Close or refresh the tab and they are gone.</li>
-            <li>Hide what the company doesn&apos;t need: other people&apos;s names and faces, the middle digits of card numbers, your UPI ID or full phone number, OTPs, and any password. Crop a bank statement to the one payment.</li>
-            <li>Photos from your phone can hide your location. Hisaab re-saves each picture without it, but check it isn&apos;t visible in the picture itself, such as a street sign.</li>
-            <li>You send the pictures yourself, only to the company&apos;s grievance email.</li>
-          </ul>
-        </details>
+        <aside className="private" aria-label="Privacy">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+            <rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
+          </svg>
+          <div>
+            <p><strong>Stays on your device.</strong> Pictures are never uploaded, stored or sent to the AI. Close the tab and they&apos;re gone. We also remove hidden location data from photos.</p>
+            <details>
+              <summary>What to hide first</summary>
+              <ul>
+                <li>Other people&apos;s faces and names.</li>
+                <li>Middle digits of card numbers, your UPI ID, OTPs and passwords.</li>
+                <li>On a bank statement, crop to the one payment.</li>
+                <li>Anything in the picture that shows where you live, like a street sign.</li>
+                <li>You send them yourself, only to the company&apos;s grievance email.</li>
+              </ul>
+            </details>
+          </div>
+        </aside>
       )}
     </div>
   );

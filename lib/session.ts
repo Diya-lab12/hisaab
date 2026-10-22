@@ -17,6 +17,16 @@ export function saveCase(c: SavedCase) {
   }
 }
 
+/** Forget the saved case so the next visit to the first page starts blank. */
+export function clearCase() {
+  try {
+    sessionStorage.removeItem(KEY);
+    window.dispatchEvent(new Event(EVENT));
+  } catch {
+    /* ignore */
+  }
+}
+
 let lastRaw: string | null | undefined;
 let lastValue: SavedCase | null = null;
 

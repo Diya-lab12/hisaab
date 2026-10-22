@@ -1,12 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Logo from "@/components/Logo";
 import { useRouter } from "next/navigation";
 import CaseTab from "@/components/CaseTab";
 import NextStepsTab from "@/components/NextStepsTab";
 import NoticeTab from "@/components/NoticeTab";
 import { formatDate, formatRupees, parseAmount } from "@/lib/checks";
-import { useHydrated, useSavedCase, type SavedCase } from "@/lib/session";
+import { clearEvidence } from "@/lib/evidence";
+import { clearCase, useHydrated, useSavedCase, type SavedCase } from "@/lib/session";
 
 type Tab = "case" | "notice" | "next";
 const TABS: { id: Tab; label: string }[] = [
@@ -41,8 +43,8 @@ function CaseView({ saved }: { saved: SavedCase }) {
 
   return (
     <main className="page case">
-      <header className="brand-row">
-        <Link href="/" className="brand">Hisaab</Link>
+      <header className="topbar">
+        <Logo />
         <Link href="/" className="back">Edit my details</Link>
       </header>
 
@@ -86,7 +88,7 @@ function CaseView({ saved }: { saved: SavedCase }) {
               <ul>{r.alternatives.map((x, i) => <li key={i}>{x}</li>)}</ul>
             </>
           )}
-          <Link href="/" className="button primary">Check another complaint</Link>
+          <Link href="/" className="button primary" onClick={() => { clearCase(); clearEvidence(); }}>Check another complaint</Link>
         </div>
       )}
 

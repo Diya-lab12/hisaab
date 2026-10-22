@@ -8,6 +8,7 @@ export type ComplaintInput = {
   amount: string;
   incidentDate: string; // yyyy-mm-dd
   description: string;
+  issueType?: string; // refund | faulty | delivery | other (chosen on the first step)
 };
 
 export function missingFields(input: ComplaintInput): string[] {

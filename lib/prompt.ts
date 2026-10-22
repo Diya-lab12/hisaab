@@ -1,4 +1,5 @@
 import { formatDate, formatRupees, parseAmount } from "./checks";
+import { issueLabel } from "./issues";
 import { LEGAL_SOURCES } from "./legal-sources";
 
 export function buildSystemPrompt(): string {
@@ -48,13 +49,15 @@ Fill only the fields that belong to the chosen status and use "" or [] for the r
 }
 
 export function buildUserMessage(c: {
+  issueType?: string;
   company: string;
   amount: string;
   incidentDate: string;
   description: string;
 }): string {
+  const kind = issueLabel(c.issueType);
   return `<complaint>
-Company: ${c.company}
+${kind ? `Type of complaint chosen by the person (may be imprecise, trust the facts over it): ${kind}\n` : ""}Company: ${c.company}
 Amount paid: ${formatRupees(parseAmount(c.amount))}
 Incident date: ${formatDate(c.incidentDate)}
 What happened: ${c.description}

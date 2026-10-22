@@ -2,7 +2,7 @@
 
 Describe what a company did wrong. Hisaab tells you whether the Consumer Protection Act, 2019 covers it, explains what you can claim, and drafts a legal notice you can edit, copy, download (PDF or Word) or open in your email app. It also tracks the 15-day deadline, and suggests which evidence pictures to add for your kind of complaint. Pictures stay in the browser tab (never uploaded or sent to the AI), and the email button stays locked until at least one is added.
 
-Two pages: **/** (describe your complaint) and **/case** (your case, the notice, next steps).
+Two pages: **/** (an opening screen, then a 4-step guided flow: Your complaint, Evidence, Your details, Review) and **/case** (your case, the notice, next steps).
 
 General legal information only, not legal advice. Review the notice before sending it.
 
@@ -20,7 +20,8 @@ Without a key the app still works using built-in keyword rules (`lib/analyze.ts`
 
 | Part | File |
 |---|---|
-| Page 1: describe | `app/page.tsx`, `components/ComplaintForm.tsx` |
+| Page 1: opening + guided flow | `app/page.tsx`, `components/Hero.tsx`, `components/ComplaintWizard.tsx`, `Stepper.tsx`, `IssueCards.tsx`, `Field.tsx` |
+| Field checks and feedback | `lib/validate.ts`, `lib/issues.ts` |
 | Page 2: case, notice, next steps | `app/case/page.tsx`, `components/CaseTab.tsx`, `NoticeTab.tsx`, `NextStepsTab.tsx` |
 | Industry advice and evidence suggestions | `lib/categories.ts` |
 | Evidence pictures (in-browser only) | `lib/evidence.ts`, `components/EvidenceUploader.tsx` |

@@ -1,26 +1,28 @@
 :root {
-  --page: #faf8f4;        /* warm white */
+  --page: #f7f9fc;
   --surface: #ffffff;
-  --ink: #1d2025;         /* charcoal */
-  --muted: #666a72;
-  --line: #e5e0d6;
-  /* Primary: the blue from the Hisaab logo */
-  --primary: #053b4e;
-  --primary-hover: #0a5169;
+  --ink: #142b43;          /* headings */
+  --body: #596779;         /* body text */
+  --muted: #596779;
+  --line: #dfe6ed;
+  --primary: #075566;
+  --primary-hover: #064653;
   --primary-ink: #ffffff;
-  --primary-soft: #e3eef2;
-  /* Secondary: a warm coral for highlights and markers */
-  --secondary: #e0603f;
-  --secondary-deep: #b23a20;
-  --secondary-soft: #fce9e2;
-  --amber: #8a4f00;
-  --amber-bg: #fcf1dc;
-  --amber-line: #e8c98a;
+  --primary-soft: #eaf4f5; /* pale teal surfaces */
+  --icon: #287d89;
+  /* Former coral accents now use the teal family. Red is kept for errors only. */
+  --secondary: #287d89;
+  --secondary-deep: #075566;
+  --secondary-soft: #eaf4f5;
+  /* Notes and warnings use a calm cool grey, not orange. */
+  --amber: #142b43;
+  --amber-bg: #eef3f8;
+  --amber-line: #cbd6e2;
   --danger: #b3261e;
   --ok: #17803f;
-  --focus: rgba(5, 59, 78, 0.22);
-  --radius: 16px;
-  --shadow: 0 1px 2px rgba(29, 32, 37, 0.06), 0 12px 32px -18px rgba(29, 32, 37, 0.35);
+  --focus: rgba(7, 85, 102, 0.22);
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(20, 43, 67, 0.05), 0 4px 14px -8px rgba(20, 43, 67, 0.12);
   color-scheme: light;
 }
 * { box-sizing: border-box; }
@@ -111,7 +113,7 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 }
 .field textarea { resize: vertical; line-height: 1.5; }
 .field input::placeholder, .field textarea::placeholder { color: var(--muted); opacity: .7; }
-.field input:hover, .field textarea:hover { border-color: #b9b3a6; }
+.field input:hover, .field textarea:hover { border-color: #b6c3d0; }
 .field input:focus, .field textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--focus); }
 .field.has-error input, .field.has-error textarea { border-color: var(--danger); }
 .field.has-error input:focus, .field.has-error textarea:focus { box-shadow: 0 0 0 4px rgba(179, 38, 30, .18); }
@@ -144,7 +146,7 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .suggest { margin-bottom: 16px; padding: 14px 16px; border-radius: 12px; background: var(--page); border: 1px solid var(--line); }
 .suggest p { margin: 0 0 6px; font-size: .92rem; }
 .suggest ul { margin: 0; padding-left: 1.2em; display: grid; gap: 3px; color: var(--muted); font-size: .9rem; }
-.drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; padding: 30px 20px; border: 2px dashed #bdb7aa; border-radius: 16px; cursor: pointer; color: var(--muted); transition: border-color .15s, background .15s, color .15s; }
+.drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; padding: 30px 20px; border: 2px dashed #b6c3d0; border-radius: 16px; cursor: pointer; color: var(--muted); transition: border-color .15s, background .15s, color .15s; }
 .drop:hover, .drop.over { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
 .sr-only:focus-visible + .drop { outline: 3px solid var(--primary); outline-offset: 2px; }
 .drop.full { opacity: .6; cursor: not-allowed; }
@@ -185,10 +187,10 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .status { color: var(--muted); }
 
 .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
-.paper { background: #fffefb; color: #1b1b1b; border: 1px solid #d8d3c8; border-radius: 6px; box-shadow: var(--shadow); border-top: 5px solid var(--primary); }
+.paper { background: #ffffff; color: #1b1b1b; border: 1px solid #dfe6ed; border-radius: 6px; box-shadow: var(--shadow); border-top: 5px solid var(--primary); }
 .paper textarea {
   display: block; width: 100%; margin: 0; border: 0; border-radius: 0; padding: 28px 28px 28px 38px; font-family: var(--font-paper), Georgia, serif; font-size: 1.02rem; line-height: 1.65;
-  color: #1b1b1b; background: linear-gradient(90deg, transparent 24px, #e7b8b8 24px, #e7b8b8 25px, transparent 25px); resize: none; overflow: hidden;
+  color: #1b1b1b; background: linear-gradient(90deg, transparent 24px, #dfe6ed 24px, #dfe6ed 25px, transparent 25px); resize: none; overflow: hidden;
 }
 .paper textarea:focus { outline: 3px solid var(--primary); outline-offset: -3px; }
 .send { margin-top: 30px; }
@@ -513,3 +515,91 @@ ul.checks { list-style: none; margin: 0; padding: 0 !important; display: grid; g
 .pay-box h3 { margin: 0; }
 .pay-grid { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .upi-qr { width: 200px; height: 200px; background: #fff; border: 1px solid var(--line); border-radius: 8px; flex: none; }
+
+/* ======================================================================
+   Refined look: calm teal system, Inter, white header, restrained cards.
+   This block comes last so it wins over the earlier rules.
+   ====================================================================== */
+:root { --font-display: var(--font-ui); }
+body { color: var(--body); font-size: 16px; font-weight: 420; line-height: 1.65; }
+h1, h2, h3, h4 { color: var(--ink); font-family: var(--font-ui), system-ui, sans-serif; }
+h1, h2 { font-weight: 700; }
+h3, h4 { font-weight: 600; }
+.home h1, .page-h, .summary h1 { font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
+.panel h2, .block h2, .ws-card h2, .empty h2, .sec-h, .fold-t, .sum-t, .situation .t, .issue .t, .ex-t, .cc-top h3, .how h3 { font-family: var(--font-ui), system-ui, sans-serif; font-weight: 600; color: var(--ink); }
+.block h2 { font-weight: 700; }
+p, .help, .sub, .how p, .situation .d, .issue .d, .ex-d { line-height: 1.65; }
+.help, .sub, .ws-card p, .panel p { max-width: 62ch; }
+.page { padding-top: 24px; }
+.block { margin-top: clamp(28px, 4.5vw, 44px); }
+.home .intro { padding-top: clamp(12px, 3.5vw, 36px); }
+.placeholder, input::placeholder, textarea::placeholder { color: #67768a; opacity: 1 !important; }
+:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+a:not([class]) { color: var(--primary); }
+
+/* Header: crisp white, fine border */
+.site-header { background: #fff; border-bottom: 1px solid var(--line); }
+.site-header nav a { color: var(--body); font-weight: 550; }
+.site-header nav a:hover { background: var(--primary-soft); color: var(--primary); }
+.site-header nav a[aria-current="page"] { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+
+/* Buttons: subtle shadow, clear hover and focus */
+.cta, .primary { box-shadow: 0 1px 2px rgba(7, 85, 102, 0.18); transition: background .15s ease, box-shadow .15s ease; transform: none !important; }
+.cta:hover:not(:disabled), .primary:hover:not(:disabled) { background: var(--primary-hover); box-shadow: 0 2px 6px rgba(7, 85, 102, 0.22); filter: none; }
+.cta:focus-visible, .primary:focus-visible, .btn-secondary:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+.cta:disabled, .primary:disabled { box-shadow: none; }
+.btn-secondary { border: 1.5px solid var(--primary); color: var(--primary); background: #fff; }
+.btn-secondary:hover { background: var(--primary-soft); }
+.ghost:hover:not(:disabled), .toolbar button:hover:not(:disabled), .send button:not(.primary):hover:not(:disabled), .deadline button:hover, .button:not(.primary):hover { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
+.link { color: var(--primary); }
+
+/* Cards: equal height, consistent padding, subtle border, hover lift */
+.situation, .issue, .ex-card, .case-card, .ws-card, .panel { border: 1px solid var(--line); background: #fff; box-shadow: var(--shadow); border-radius: var(--radius); }
+.situation, .issue, .ex-card { transition: border-color .15s ease, background-color .15s ease, transform .15s ease, box-shadow .15s ease; }
+.situation:hover, .issue:hover, .ex-card:hover { border-color: var(--primary); background: var(--primary-soft); transform: translateY(-2px); box-shadow: var(--shadow); }
+.situations { grid-auto-rows: 1fr; gap: 14px; }
+.situations > li { display: flex; }
+.situation { width: 100%; padding: 18px; align-items: start; column-gap: 14px; }
+.issue { padding: 16px; column-gap: 14px; border-width: 1px; }
+.issue.picked { border-color: var(--primary); background: var(--primary-soft); box-shadow: 0 0 0 1px var(--primary); }
+.situation .t, .issue .t, .ex-t { font-size: 1rem; line-height: 1.35; }
+.situation .d, .issue .d { color: var(--body); }
+
+/* Category icons in pale-teal rounded squares */
+.situation svg, .issue svg, .ex-icon {
+  box-sizing: content-box; width: 22px; height: 22px; padding: 9px; border-radius: 10px;
+  background: var(--primary-soft); color: var(--icon); margin-top: 0; flex: none;
+}
+.situation:hover svg, .issue:hover svg, .ex-card:hover .ex-icon, .issue.picked svg { background: #fff; color: var(--primary); }
+.ex-card { padding: 20px; column-gap: 16px; border-width: 1px; }
+
+/* How Hisaab helps: pale-teal numbers, thin cool-grey connectors */
+.how { counter-reset: how; gap: 24px 32px; grid-template-columns: 1fr; }
+.how li { border-top: 0; padding-top: 0; position: relative; }
+.how li::before { width: 30px; height: 30px; margin-bottom: 10px; background: var(--primary-soft); color: var(--primary); font-weight: 650; border: 1px solid #cfe3e6; }
+.how h3 { font-size: 1.02rem; }
+.how p { color: var(--body); max-width: 32ch; }
+@media (min-width: 900px) {
+  .how { grid-template-columns: repeat(4, 1fr); }
+  .how li:not(:last-child)::after { content: ""; position: absolute; top: 15px; left: 42px; right: -20px; height: 1px; background: var(--line); }
+}
+@media (max-width: 899px) {
+  .how li { padding-left: 46px; }
+  .how li::before { position: absolute; left: 0; top: 0; margin: 0; }
+  .how li:not(:last-child)::after { content: ""; position: absolute; left: 15px; top: 36px; bottom: -22px; width: 1px; background: var(--line); }
+}
+
+/* Teal replaces the coral and orange accents */
+.timeline li::before { border-color: var(--icon); }
+.ws-card.next { border: 1px solid var(--primary); border-left: 4px solid var(--primary); background: var(--primary-soft); }
+.ws-card.next h2 { color: var(--primary); }
+.timing { border-left: 4px solid var(--icon); }
+.stepper li.now .dot { border-color: var(--primary); color: var(--primary); }
+.steps-box > li::before { background: var(--primary-soft); color: var(--primary); }
+.ai-confirm { border-color: var(--icon); background: var(--primary-soft); }
+.callout.warn, .draft-banner { background: var(--amber-bg); border-color: var(--amber-line); color: var(--ink); }
+.msg.note { color: var(--ink); }
+.field input, .field textarea { border-width: 1px; }
+.paper { border-top: 4px solid var(--primary); }
+.situation, .issue, .ex-card { align-content: start; }
+@media (max-width: 599px) { .situations { grid-auto-rows: auto; } }

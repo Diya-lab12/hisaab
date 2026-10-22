@@ -1,8 +1,4 @@
-import {
-  DISTRICT_LIMIT_RUPEES,
-  FREE_FILING_LIMIT_RUPEES,
-  LIMITATION_YEARS,
-} from "./config";
+import { DISTRICT_LIMIT_RUPEES, FREE_FILING_LIMIT_RUPEES } from "./config";
 
 export type ComplaintInput = {
   name: string;
@@ -58,23 +54,15 @@ export function formatDate(iso: string): string {
 }
 
 export type FilingInfo = {
-  timeWarning: string | null;
   forum: string;
   fee: string | null;
 };
 
-export function filingInfo(amount: number, incidentIso: string, now = new Date()): FilingInfo {
-  const incident = new Date(incidentIso + "T00:00:00");
-  const limit = new Date(incident);
-  limit.setFullYear(limit.getFullYear() + LIMITATION_YEARS);
-  const timeWarning =
-    now > limit
-      ? `This incident was more than ${LIMITATION_YEARS} years ago. Under Section 69 a complaint must normally be filed within ${LIMITATION_YEARS} years, so the Commission may refuse it unless it condones the delay.`
-      : null;
+export function filingInfo(amount: number): FilingInfo {
   const forum =
     amount <= DISTRICT_LIMIT_RUPEES
       ? "District Consumer Disputes Redressal Commission, filed where you live or work (Section 34(2)(d))."
       : "Your claim is above ₹50 lakh, so it falls outside the District Commission. A State Commission may apply; consider legal advice.";
   const fee = amount <= FREE_FILING_LIMIT_RUPEES ? "Free to file." : null;
-  return { timeWarning, forum, fee };
+  return { forum, fee };
 }

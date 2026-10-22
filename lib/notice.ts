@@ -12,7 +12,7 @@ To,
 The Manager / Grievance Officer,
 ${input.company.trim()}
 
-Subject: Legal notice under the Consumer Protection Act, 2019 regarding payment of ${formatRupees(parseAmount(input.amount))} on ${formatDate(input.incidentDate)}
+Subject: Legal notice under the Consumer Protection Act, 2019: complaint regarding ${formatRupees(parseAmount(input.amount))} paid to ${input.company.trim()} (incident date: ${formatDate(input.incidentDate)})
 
 Sir/Madam,
 

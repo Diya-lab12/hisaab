@@ -9,7 +9,9 @@ function strArr(v: unknown): string[] {
   return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
 }
 
-export async function analyzeWithLLM(input: ComplaintInput): Promise<Analysis> {
+export async function analyzeWithLLM(
+  input: ComplaintInput,
+): Promise<{ analysis: Analysis; removedCitations: number }> {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) throw new Error("OPENROUTER_API_KEY not set");
 
@@ -45,6 +47,7 @@ export async function analyzeWithLLM(input: ComplaintInput): Promise<Analysis> {
   }
 
   // Section guard: drop any section not on the verified list.
+  let removedCitations = 0;
   const sections = (Array.isArray(parsed.sections) ? parsed.sections : [])
     .map((s: { id?: unknown; why?: unknown }) => ({
       id: String(s?.id ?? "").replace(/^\s*(section|sec\.?|s\.?)\s*/i, "").trim(),
@@ -52,7 +55,10 @@ export async function analyzeWithLLM(input: ComplaintInput): Promise<Analysis> {
     }))
     .filter((s: { id: string }) => {
       const ok = LEGAL_SECTION_IDS.has(s.id);
-      if (!ok) console.warn("Section guard removed unlisted section:", s.id);
+      if (!ok) {
+        removedCitations++;
+        console.warn("Section guard removed unlisted section:", s.id);
+      }
       return ok;
     });
 
@@ -60,9 +66,12 @@ export async function analyzeWithLLM(input: ComplaintInput): Promise<Analysis> {
 
   if (parsed.status === "not_covered") {
     return {
-      status: "not_covered",
-      not_covered_reason: typeof parsed.not_covered_reason === "string" ? parsed.not_covered_reason : "",
-      alternatives: strArr(parsed.alternatives),
+      removedCitations,
+      analysis: {
+        status: "not_covered",
+        not_covered_reason: typeof parsed.not_covered_reason === "string" ? parsed.not_covered_reason : "",
+        alternatives: strArr(parsed.alternatives),
+      },
     };
   }
   // A notice with bracketed placeholders is unusable, so treat it as a failed AI answer.
@@ -71,17 +80,23 @@ export async function analyzeWithLLM(input: ComplaintInput): Promise<Analysis> {
   }
   if (parsed.status === "covered" && sections.length && noticeBody.trim()) {
     return {
-      status: "covered",
-      explanation: typeof parsed.explanation === "string" ? parsed.explanation : "",
-      sections,
-      relief: strArr(parsed.relief),
-      steps: strArr(parsed.steps),
-      noticeBody,
+      removedCitations,
+      analysis: {
+        status: "covered",
+        explanation: typeof parsed.explanation === "string" ? parsed.explanation : "",
+        sections,
+        relief: strArr(parsed.relief),
+        steps: strArr(parsed.steps),
+        noticeBody,
+      },
     };
   }
   const missing = strArr(parsed.missing);
   return {
-    status: "need_more_info",
-    missing: missing.length ? missing : ["Please add more detail about what happened and what you want."],
+    removedCitations,
+    analysis: {
+      status: "need_more_info",
+      missing: missing.length ? missing : ["Please add more detail about what happened and what you want."],
+    },
   };
 }

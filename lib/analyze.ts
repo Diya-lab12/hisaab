@@ -30,8 +30,8 @@ const CATEGORIES: Category[] = [
     keywords: [/never (arrived|came|delivered)/, /not (been )?delivered/, /did(n't| not) (arrive|receive|get)/, /refus\w* (to )?(a )?(refund|return)/, /no refund/, /won'?t refund/, /not refund/, /cancel+ed/],
     explanation: "You paid for goods or a service that you did not receive, and the company will not refund you. Taking your money without delivering, then refusing a refund, is both a deficiency in service and an unfair trade practice.",
     sections: [
-      { id: "2(11)", why: "Failing to deliver what you paid for is a shortcoming in the performance of a service." },
-      { id: "2(47)", why: "Refusing to refund money for goods or services not provided is an unfair trade practice (clause (viii))." },
+      { id: "2(11)", why: "Failing to deliver what you paid for is a shortcoming or inadequacy in the performance of a service." },
+      { id: "2(47)", why: "Refusing to refund what you paid for a service that was not delivered properly, within the stated period or 30 days, is an unfair trade practice (clause (viii))." },
       { id: "39", why: "Lets the Commission order a refund, compensation and costs." },
     ],
     breach: "The goods or services I paid for were not delivered, and you have refused to refund my money. This is a deficiency in service under Section 2(11) and an unfair trade practice under Section 2(47)(viii) of the Consumer Protection Act, 2019.",
@@ -42,11 +42,11 @@ const CATEGORIES: Category[] = [
     keywords: [/overcharg/, /charged (me )?(more|extra|too much)/, /extra charge/, /service charge/, /above (the )?mrp/, /hidden (fee|charge)/, /excess (fee|charge)/, /surge/],
     explanation: "You were charged more than the agreed or displayed price, or were billed charges you never agreed to. Overcharging is a recognised ground for a consumer complaint.",
     sections: [
-      { id: "2(6)", why: "A complaint can be made about overcharging." },
+      { id: "2(7)", why: "You paid for the goods or service for your own use, so you are a 'consumer'." },
       { id: "2(47)", why: "Charging beyond the agreed or displayed price can be an unfair trade practice." },
       { id: "39", why: "Lets the Commission order a refund of the excess, compensation and costs." },
     ],
-    breach: "I was charged more than the agreed or displayed price. Overcharging is a ground for complaint under Section 2(6) and an unfair trade practice under Section 2(47) of the Consumer Protection Act, 2019.",
+    breach: "I was charged more than the agreed or displayed price. Overcharging can be an unfair trade practice under Section 2(47) of the Consumer Protection Act, 2019.",
     demand: "refund the excess amount charged with interest and pay reasonable compensation",
   },
   {
@@ -67,7 +67,7 @@ const CATEGORIES: Category[] = [
     explanation: "The service you paid for was not delivered properly or on time. A shortfall in the quality or manner of a paid service is a 'deficiency' under the Act.",
     sections: [
       { id: "2(11)", why: "A shortcoming in the quality or manner of a paid service is a deficiency." },
-      { id: "2(42)", why: "Your service (travel, food, telecom, gym, e-commerce and similar) falls under 'service'." },
+      { id: "2(7)", why: "You paid for the service for your own use, so you are a 'consumer'." },
       { id: "39", why: "Lets the Commission order a refund, compensation and costs." },
     ],
     breach: "The service I paid for was deficient, which is covered by Section 2(11) of the Consumer Protection Act, 2019.",
@@ -78,7 +78,7 @@ const CATEGORIES: Category[] = [
     keywords: [/refund/, /money back/, /return (policy|my money)/],
     explanation: "You are asking for your money back and the company is not giving it. Refusing a refund that is due is an unfair trade practice.",
     sections: [
-      { id: "2(47)", why: "Refusing to refund within the stipulated period is an unfair trade practice (clause (viii))." },
+      { id: "2(47)", why: "Refusing to refund the price of defective goods or a deficient service within the stated period or 30 days is an unfair trade practice (clause (viii))." },
       { id: "39", why: "Lets the Commission order a refund, compensation and costs." },
     ],
     breach: "You have refused to refund the amount due to me, which is an unfair trade practice under Section 2(47)(viii) of the Consumer Protection Act, 2019.",
@@ -113,6 +113,14 @@ const NOT_COVERED: { pattern: RegExp; reason: string; alternatives: string[] }[]
     alternatives: ["Check the contract for an arbitration clause.", "A lawyer can advise on a commercial claim."],
   },
 ];
+
+export function notCoveredMatch(description: string) {
+  const text = description.toLowerCase();
+  for (const n of NOT_COVERED) {
+    if (n.pattern.test(text)) return { not_covered_reason: n.reason, alternatives: n.alternatives };
+  }
+  return null;
+}
 
 function wordCount(s: string): number {
   return s.trim().split(/\s+/).filter(Boolean).length;
@@ -155,7 +163,7 @@ export function analyze(input: ComplaintInput): Analysis {
   const date = formatDate(input.incidentDate);
   const facts = input.description.trim().replace(/\s+/g, " ");
 
-  const noticeBody = `I am a consumer. On ${date}, I paid ${amount} to ${company}. The facts are as follows: ${facts}${/[.!?]$/.test(facts) ? "" : "."}
+  const noticeBody = `I am a consumer. I paid ${amount} to ${company}. The incident took place on ${date}. The facts are as follows: ${facts}${/[.!?]$/.test(facts) ? "" : "."}
 
 ${c.breach}
 

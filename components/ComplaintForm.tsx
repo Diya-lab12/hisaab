@@ -10,9 +10,11 @@ const empty: ComplaintInput = {
 export default function ComplaintForm({
   loading,
   onSubmit,
+  onInvalid,
 }: {
   loading: boolean;
   onSubmit: (input: ComplaintInput) => void;
+  onInvalid: () => void;
 }) {
   const [v, setV] = useState<ComplaintInput>(empty);
   const [errors, setErrors] = useState<string[]>([]);
@@ -21,9 +23,15 @@ export default function ComplaintForm({
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const missing = missingFields(v);
-    setErrors(missing);
-    if (missing.length === 0) onSubmit(v);
+    // Nothing typed to analyse: stop here and say exactly what is missing.
+    // Otherwise the server decides (it can say "not covered" even if other fields are blank).
+    if (!v.description.trim()) {
+      setErrors(missingFields(v));
+      onInvalid();
+      return;
+    }
+    setErrors([]);
+    onSubmit(v);
   }
 
   return (

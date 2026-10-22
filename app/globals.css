@@ -23,3 +23,5 @@ button:disabled { opacity:.5; cursor:wait; }
 .notice-head h3 { margin:0; }
 .notice pre { white-space:pre-wrap; font:inherit; margin:12px 0 0; }
 .disclaimer { margin-top:32px; font-size:.85rem; color:var(--muted); }
+.tag { margin:0 0 12px; padding:8px 12px; border-radius:8px; background:rgba(217,164,0,.15); font-size:.9rem; }
+.hint, .draft-note { margin:0 0 8px; color:var(--muted); font-size:.9rem; }

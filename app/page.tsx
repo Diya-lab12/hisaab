@@ -33,7 +33,14 @@ export default function Home() {
     <main>
       <h1>Hisaab</h1>
       <p className="lead">Describe what a company did wrong. We tell you whether the Consumer Protection Act, 2019 covers it and draft your legal notice.</p>
-      <ComplaintForm loading={loading} onSubmit={check} />
+      <ComplaintForm
+        loading={loading}
+        onSubmit={check}
+        onInvalid={() => {
+          setResult(null);
+          setError(null);
+        }}
+      />
       {loading && <p className="loading" aria-live="polite">Reading the Consumer Protection Act…</p>}
       {error && <p className="error" role="alert">{error}</p>}
       {result && <ResultCard r={result} />}

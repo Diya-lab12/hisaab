@@ -20,6 +20,8 @@ import {
 import { ROUTES, SECTOR } from "@/lib/escalation";
 import { ADVOCATE } from "@/lib/advocate";
 import { sendToAdvocate, syncAdvocate } from "@/lib/advocateClient";
+import UpiQr from "./UpiQr";
+import { ADDONS, TIERS, UTR, newPayRef, quote, rupees, upiAccount, upiLink } from "@/lib/pricing";
 import { timingCheck, type Timing } from "@/lib/timing";
 import { getIssue } from "@/lib/issues";
 import { resolutionLabel } from "@/lib/questions";
@@ -437,25 +439,35 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
   const [problem, setProblem] = useState<{ code: string; text: string } | null>(null);
   const [checking, setChecking] = useState(false);
   const [again, setAgain] = useState(false);
+  const [addons, setAddons] = useState<string[]>([]);
+  const [payRef, setPayRef] = useState<string | null>(null); // set once the client moves on to pay
+  const [utr, setUtr] = useState("");
+  const account = upiAccount();
+  const claim = parseAmount(rec.input.amount);
+  const price = quote(claim, addons);
+  const utrOk = UTR.test(utr.trim());
   const timing = timingCheck(rec.input);
   const early = timing.state === "too_early";
   const hasEvidence = pictureCount > 0;
   const sub = rec.submission;
   const emailOk = isEmail(email);
   const ready = hasEvidence && !early && emailOk && consent && !sending;
+  const paying = Boolean(account && payRef);
   const showForm = !sub || (again && sub.lastStatus === "declined");
 
   async function send() {
     setSending(true);
     setProblem(null);
-    const res = await sendToAdvocate(rec, { email: email.trim(), noticeText: text, images });
+    const res = await sendToAdvocate(rec, { email: email.trim(), noticeText: text, images, payment: account && payRef ? { ref: payRef, utr: utr.trim(), addons } : undefined });
     if (res.ok) {
       mutateCase(rec.id, () => ({
-        patch: { status: "review", submission: { ref: res.ref, token: res.token, email: email.trim(), sentAt: new Date().toISOString(), lastStatus: "submitted", tracked: res.tracked } },
+        patch: { status: "review", submission: { ref: res.ref, token: res.token, email: email.trim(), sentAt: new Date().toISOString(), lastStatus: "submitted", tracked: res.tracked, paid: account && payRef ? { ref: payRef, total: price.total, addons } : undefined } },
         events: [makeEvent("status", `Sent to the advocate for review (reference ${res.ref}).`, false)],
       }));
       setAgain(false);
       setConsent(false);
+      setPayRef(null);
+      setUtr("");
     } else {
       setProblem({ code: res.code, text: res.message });
     }
@@ -479,6 +491,12 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
         <div className="adv-sent">
           <p><strong>Sent to {ADVOCATE.name} on {new Date(sub.sentAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}.</strong> Reference <code>{sub.ref}</code>.</p>
           <p className={`adv-status ${sub.lastStatus}`}>{sub.tracked === false ? "Sent to the advocate by email" : SERVER_LABEL[sub.lastStatus] ?? "Waiting for the advocate"}</p>
+          {sub.paid && (
+            <p className="fine">
+              Paid {rupees(sub.paid.total)} (note {sub.paid.ref}).{sub.paid.addons.length > 0 && ` Includes: ${ADDONS.filter((a) => sub.paid!.addons.includes(a.id)).map((a) => a.label.toLowerCase()).join(", ")}.`}{" "}
+              The advocate confirms it when it shows in her account. If she can&apos;t take your case, you get a full refund.
+            </p>
+          )}
           {sub.note && <p className="callout"><strong>Note from the advocate:</strong> {sub.note}</p>}
           {sub.tracked === false ? (
             <p className="fine">The advocate will reply to {sub.email}. In this setup this page can&apos;t update by itself, so when you hear back, record it using the status box on the right.</p>
@@ -512,6 +530,23 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
           <label htmlFor="adv-email" className="side-label">Your email, so the advocate can reach you</label>
           <input id="adv-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" aria-invalid={email !== "" && !emailOk} />
 
+          {account && (
+            <fieldset className="pay-opts" disabled={paying}>
+              <legend>The review fee and extras</legend>
+              <p className="fine">
+                Review, signing and emailing the notice: <strong>{rupees(price.fee)}</strong> for a claim of {claim > 0 ? formatRupees(claim) : "this size"}.{" "}
+                Fees by claim: {TIERS.map((t) => `${t.label}: ${rupees(t.fee)}`).join(" · ")}.
+              </p>
+              {ADDONS.map((a) => (
+                <label key={a.id} className="consent addon">
+                  <input type="checkbox" checked={addons.includes(a.id)} onChange={(e) => setAddons((cur) => (e.target.checked ? [...cur, a.id] : cur.filter((x) => x !== a.id)))} />
+                  <span><strong>{a.label}, +{rupees(a.price)}.</strong> {a.detail}</span>
+                </label>
+              ))}
+              <p className="pay-total">Total: <strong>{rupees(price.total)}</strong></p>
+            </fieldset>
+          )}
+
           <label className="consent">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
             <span>
@@ -519,7 +554,30 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
             </span>
           </label>
 
-          <button type="button" className="primary" onClick={send} disabled={!ready}>{sending ? "Sending…" : `Send to ${ADVOCATE.name}`}</button>
+          {account && paying && payRef ? (
+            <div className="pay-box">
+              <h3>Pay {rupees(price.total)} by UPI</h3>
+              <div className="pay-grid">
+                <UpiQr link={upiLink(account, price.total, payRef)} />
+                <div>
+                  <p>Scan the code with any UPI app, or pay to <strong>{account.id}</strong>.</p>
+                  <p>Put this in the payment note: <code>{payRef}</code></p>
+                  <p className="fine">On a phone, <a href={upiLink(account, price.total, payRef)}>open your UPI app</a>.</p>
+                </div>
+              </div>
+              <label className="side-label" htmlFor="adv-utr">After paying, enter the 12-digit UPI transaction ID from your app</label>
+              <input id="adv-utr" inputMode="numeric" maxLength={12} value={utr} onChange={(e) => setUtr(e.target.value.replace(/\D/g, ""))} aria-invalid={utr !== "" && !utrOk} />
+              <p className="fine">The advocate checks the payment in her account before approving. If she can&apos;t take your case, for example it falls outside the consumer law or is out of time, you get a full refund.</p>
+              <div className="stack-row">
+                <button type="button" className="primary" onClick={send} disabled={!ready || !utrOk}>{sending ? "Sending…" : `I've paid ${rupees(price.total)}. Send to ${ADVOCATE.name}`}</button>
+                <button type="button" className="link" onClick={() => setPayRef(null)} disabled={sending}>Back</button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" className="primary" onClick={account ? () => setPayRef(payRef ?? newPayRef()) : send} disabled={!ready}>
+              {sending ? "Sending…" : account ? `Continue to payment, ${rupees(price.total)}` : `Send to ${ADVOCATE.name}`}
+            </button>
+          )}
           {!ready && !sending && <p className="fine">{!hasEvidence ? "Add evidence first." : early ? "Locked until the company's time has passed, or it has refused in writing." : !emailOk ? "Enter a valid email." : "Tick the box to agree."}</p>}
 
           {problem && problem.code !== "not_configured" && <p className="callout warn" role="alert">{problem.text}</p>}

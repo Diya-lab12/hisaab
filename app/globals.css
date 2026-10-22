@@ -503,3 +503,13 @@ ul.checks { list-style: none; margin: 0; padding: 0 !important; display: grid; g
 .adv-status.declined { color: var(--amber); }
 .badge.st-approved { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
 .callout textarea { width: 100%; font: inherit; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--surface); color: inherit; margin-top: 4px; }
+
+/* Paying for the advocate's review */
+.pay-opts { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 10px; margin: 0; min-width: 0; }
+.pay-opts legend { font-weight: 600; padding: 0 6px; }
+.addon { align-items: flex-start; }
+.pay-total { margin: 0; font-size: 1rem; }
+.pay-box { border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 10px; background: var(--surface); }
+.pay-box h3 { margin: 0; }
+.pay-grid { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.upi-qr { width: 200px; height: 200px; background: #fff; border: 1px solid var(--line); border-radius: 8px; flex: none; }

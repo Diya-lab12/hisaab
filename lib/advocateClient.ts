@@ -3,6 +3,7 @@ import { mutateCase, type CaseRecord, type CaseStatus } from "./cases";
 import { evidencePdfBlob, noticePdfBlob } from "./export";
 import { parseAmount } from "./checks";
 import { resolutionLabel } from "./questions";
+import type { Payment } from "./pricing";
 
 type Pic = { name: string; dataUrl: string; width: number; height: number };
 
@@ -31,7 +32,7 @@ export type SendResult =
   | { ok: false; code: "not_configured" | "too_large" | "error"; message: string };
 
 /** Sends the notice and the evidence pack to the advocate through Hisaab, in one go. */
-export async function sendToAdvocate(rec: CaseRecord, v: { email: string; noticeText: string; images: Pic[] }): Promise<SendResult> {
+export async function sendToAdvocate(rec: CaseRecord, v: { email: string; noticeText: string; images: Pic[]; payment?: Payment }): Promise<SendResult> {
   const pack = await evidencePack(v.images, rec.input.company);
   if (!pack) return { ok: false, code: "too_large", message: "Your pictures are too large to send together. Remove a few, or use smaller screenshots." };
   const notice = await noticePdfBlob(v.noticeText);
@@ -51,6 +52,7 @@ export async function sendToAdvocate(rec: CaseRecord, v: { email: string; notice
         resolution: resolutionLabel(i.resolution, i.resolutionOther),
         noticeText: v.noticeText,
         evidenceCount: v.images.length,
+        payment: v.payment,
         noticePdf: await toBase64(notice),
         evidencePdf: await toBase64(pack),
       }),

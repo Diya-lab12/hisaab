@@ -16,6 +16,7 @@ type Sub = {
   noticeText: string;
   evidenceCount: number;
   advocateNote: string;
+  payment?: { ref: string; utr: string; total: number; fee: number; items: { id: string; label: string; price: number }[]; verified: boolean };
   history: { at: string; text: string }[];
 };
 
@@ -74,7 +75,7 @@ export default function AdvocateDashboard() {
     await load();
   }
 
-  async function decide(id: string, action: "approve" | "sent" | "decline") {
+  async function decide(id: string, action: "approve" | "sent" | "decline" | "paid") {
     setBusy(true);
     setMsg(null);
     try {
@@ -86,7 +87,7 @@ export default function AdvocateDashboard() {
       const r = await fetch("/api/advocate/decide", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action, note, signedPdf }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error ?? "Something went wrong.");
-      setMsg(d.warning ?? "Done. The client has been emailed and their Hisaab case will update.");
+      setMsg(action === "paid" ? "Marked as received." : (d.warning ?? "Done. The client has been emailed and their Hisaab case will update."));
       setNote("");
       setPdf(null);
       await load();
@@ -145,7 +146,7 @@ export default function AdvocateDashboard() {
             {subs.map((s) => (
               <li key={s.id}>
                 <button type="button" className={s.id === openId ? "on" : ""} onClick={() => { setOpenId(s.id); setNote(""); setPdf(null); setMsg(null); }}>
-                  <strong>{s.company.brand}</strong> · ₹{s.amount}
+                  <strong>{s.company.brand}</strong> · ₹{s.amount}{s.payment && !s.payment.verified ? " · unpaid?" : ""}{s.payment?.items.some((i) => i.id === "priority") ? " · priority" : ""}
                   <span className={`badge st-${s.status === "submitted" ? "review" : s.status === "declined" ? "ready" : s.status}`}>{LABEL[s.status]}</span>
                   <span className="fine">{s.client.name} · ref {s.id} · {stamp(s.updatedAt)}</span>
                 </button>
@@ -174,6 +175,20 @@ export default function AdvocateDashboard() {
                     <div key={k} className="rv-row"><dt>{k}</dt><dd>{v}</dd><span /></div>
                   ))}
                 </dl>
+                {open.payment && (
+                  <div className={`callout ${open.payment.verified ? "" : "warn"}`}>
+                    <p>
+                      <strong>{open.payment.verified ? "Payment received" : "Check your UPI app"}: ₹{open.payment.total.toLocaleString("en-IN")}</strong>
+                    </p>
+                    <p className="fine">
+                      Payment note <code>{open.payment.ref}</code> · UPI transaction ID <code>{open.payment.utr}</code>. Review fee ₹{open.payment.fee}
+                      {open.payment.items.map((i) => ` · ${i.label} ₹${i.price}`).join("")}.
+                    </p>
+                    {!open.payment.verified && (
+                      <button type="button" className="button small primary" disabled={busy} onClick={() => decide(open.id, "paid")}>Payment received</button>
+                    )}
+                  </div>
+                )}
                 <h3>Draft notice</h3>
                 <div className="paper"><textarea readOnly rows={18} value={open.noticeText} aria-label="Draft notice" style={{ overflow: "auto", resize: "vertical" }} /></div>
                 <p className="fine">Edit and sign it on your own letterhead using the PDF in your email, then upload the signed PDF below.</p>

@@ -20,6 +20,8 @@ export type Submission = {
   noticeText: string;
   evidenceCount: number;
   advocateNote: string;
+  /** Set when the review is paid for. The client's UPI transaction ID is a claim until the advocate sees the money. */
+  payment?: { ref: string; utr: string; total: number; fee: number; items: { id: string; label: string; price: number }[]; verified: boolean };
   /** What the client sees. Written by the system when something really happens. */
   history: { at: string; text: string }[];
 };

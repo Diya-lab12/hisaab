@@ -4,6 +4,7 @@ import { EMAIL, json, limited, originOf, str } from "@/lib/server/http";
 import { sendMail } from "@/lib/server/mail";
 import { deleteSubmission, putSubmission, type Submission } from "@/lib/server/store";
 import { hashToken, newRef, newToken } from "@/lib/server/auth";
+import { PAYREF, UTR, quote, rupees, upiAccount } from "@/lib/pricing";
 
 export const maxDuration = 60;
 
@@ -35,6 +36,18 @@ export async function POST(req: Request) {
   if (!evidencePdf || evidencePdf.length > MAX_PDF_B64) return json({ error: "Evidence is required, and it must be small enough to send. Try fewer or smaller pictures." }, 400);
   if (noticePdf.length > MAX_PDF_B64) return json({ error: "The notice file is too large." }, 400);
 
+  // When payments are on, the server works out the total itself from the claim amount and the chosen extras.
+  let payment: Submission["payment"];
+  if (upiAccount()) {
+    const p = (b.payment ?? {}) as Record<string, unknown>;
+    const ref = str(p.ref, 12).trim();
+    const utr = str(p.utr, 12).trim();
+    if (!PAYREF.test(ref) || !UTR.test(utr)) return json({ error: "Enter the 12-digit UPI transaction ID from your payment app." }, 400);
+    const addons = Array.isArray(p.addons) ? p.addons.filter((x): x is string => typeof x === "string").slice(0, 10) : [];
+    const q = quote(Number(b.amount) || 0, addons);
+    payment = { ref, utr, total: q.total, fee: q.fee, items: q.items, verified: false };
+  }
+
   const now = new Date().toISOString();
   const id = newRef();
   const token = newToken();
@@ -54,6 +67,7 @@ export async function POST(req: Request) {
     noticeText: notice,
     evidenceCount: Math.max(1, Math.min(20, Number(b.evidenceCount) || 1)),
     advocateNote: "",
+    payment,
     history: [{ at: now, text: "Received by the advocate for review." }],
   };
 
@@ -63,7 +77,7 @@ export async function POST(req: Request) {
     await sendMail({
       to: ADVOCATE.reviewEmail,
       replyTo: email,
-      subject: `Hisaab review request ${id}: ${sub.company.brand} (₹${Number(sub.amount).toLocaleString("en-IN")})`,
+      subject: `${payment?.items.some((i) => i.id === "priority") ? "PRIORITY " : ""}Hisaab review request ${id}: ${sub.company.brand} (₹${Number(sub.amount).toLocaleString("en-IN")})`,
       text: [
         `A client has asked you to review a legal notice.`,
         ``,
@@ -83,6 +97,17 @@ export async function POST(req: Request) {
         `CIN: ${sub.company.cin || "not provided"}`,
         `Company email: ${sub.company.email || "not provided"}`,
         ``,
+        ...(payment
+          ? [
+              `PAYMENT (the client says they paid: check your UPI app before approving)`,
+              `Amount to expect: ${rupees(payment.total)}`,
+              `Payment note / reference: ${payment.ref}`,
+              `UPI transaction ID the client gave: ${payment.utr}`,
+              `Review fee: ${rupees(payment.fee)}`,
+              ...payment.items.map((i) => `Extra: ${i.label} (${rupees(i.price)})`),
+              ``,
+            ]
+          : []),
         `Amount: ₹${Number(sub.amount).toLocaleString("en-IN")}`,
         `Relevant date: ${isNaN(Date.parse(sub.date)) ? sub.date : new Date(sub.date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}`,
         `Client would like: ${sub.resolution || "not stated"}`,
@@ -107,10 +132,10 @@ export async function POST(req: Request) {
     await sendMail({
       to: email,
       subject: `Your notice has been sent to the advocate (ref ${id})`,
-      text: `Hello ${sub.client.name},\n\nYour draft notice about ${sub.company.brand} has been sent to ${ADVOCATE.name}, Advocate (${ADVOCATE.council}), for review.\n\nReference: ${id}\n\nNothing has been sent to the company yet. ${tracked ? "You will get an email when the advocate responds, and the status in your Hisaab case will update." : "The advocate will reply to you by email. Your Hisaab case does not update by itself, so you can record updates there yourself."}\n\nHisaab provides general information, not legal advice.`,
+      text: `Hello ${sub.client.name},\n\nYour draft notice about ${sub.company.brand} has been sent to ${ADVOCATE.name}, Advocate (${ADVOCATE.council}), for review.\n\nReference: ${id}\n${payment ? `Payment: ${rupees(payment.total)}, your note ${payment.ref}. The advocate confirms it when it shows in her account. If she can't take your case, such as a matter outside the consumer law or one that is out of time, you get a full refund.\n` : ""}\nNothing has been sent to the company yet. ${tracked ? "You will get an email when the advocate responds, and the status in your Hisaab case will update." : "The advocate will reply to you by email. Your Hisaab case does not update by itself, so you can record updates there yourself."}\n\nHisaab provides general information, not legal advice.`,
     });
   } catch {
     /* ignore */
   }
-  return json({ ok: true, ref: id, token: tracked ? token : "", tracked, status: sub.status });
+  return json({ ok: true, ref: id, token: tracked ? token : "", tracked, status: sub.status, paidTotal: payment?.total ?? 0 });
 }

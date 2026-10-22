@@ -13,6 +13,8 @@ const NEXT: Record<string, { to: SubmissionStatus; from: SubmissionStatus[] }> =
   sent: { to: "sent", from: ["submitted", "approved"] },
   decline: { to: "declined", from: ["submitted", "approved"] },
 };
+// Recording that the money arrived. It changes the payment, not the status.
+const PAID = "paid";
 
 export async function POST(req: Request) {
   if (!(await isAdvocate())) return json({ error: "Not signed in." }, 401);
@@ -24,10 +26,21 @@ export async function POST(req: Request) {
     return json({ error: "Invalid request." }, 400);
   }
   const action = str(b.action, 10);
+  if (action === PAID) {
+    const s = await getSubmission(str(b.id, 40));
+    if (!s) return json({ error: "Not found." }, 404);
+    if (!s.payment) return json({ error: "This request has no payment." }, 400);
+    s.payment.verified = true;
+    s.updatedAt = new Date().toISOString();
+    s.history = [...s.history, { at: s.updatedAt, text: "Payment received." }];
+    await putSubmission(s);
+    return json({ ok: true, status: s.status });
+  }
   const rule = NEXT[action];
   if (!rule) return json({ error: "Unknown action." }, 400);
   const sub = await getSubmission(str(b.id, 40));
   if (!sub) return json({ error: "Not found." }, 404);
+  if (action !== "decline" && sub.payment && !sub.payment.verified) return json({ error: "Check your UPI app for the payment first, then press \"Payment received\"." }, 409);
   if (!rule.from.includes(sub.status)) return json({ error: `This request is already ${sub.status}.` }, 409);
 
   const note = str(b.note, 1000).trim();

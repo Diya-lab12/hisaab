@@ -54,7 +54,7 @@ export type CaseRecord = {
   /** True when the browser refused to store it, so it exists only in this tab. */
   unsaved?: boolean;
   /** Set when the case was sent to the advocate through Hisaab. The token is the client's secret for checking status. */
-  submission?: { ref: string; token: string; email: string; sentAt: string; lastStatus: string; note?: string; tracked?: boolean };
+  submission?: { ref: string; token: string; email: string; sentAt: string; lastStatus: string; note?: string; tracked?: boolean; paid?: { ref: string; total: number; addons: string[] } };
 };
 
 const LOCAL_KEY = "hisaab-cases-v1";

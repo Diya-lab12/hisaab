@@ -3,7 +3,6 @@ import { mutateCase, type CaseRecord, type CaseStatus } from "./cases";
 import { evidencePdfBlob, noticePdfBlob } from "./export";
 import { parseAmount } from "./checks";
 import { resolutionLabel } from "./questions";
-import type { Payment } from "./pricing";
 
 type Pic = { name: string; dataUrl: string; width: number; height: number };
 
@@ -32,7 +31,7 @@ export type SendResult =
   | { ok: false; code: "not_configured" | "too_large" | "error"; message: string };
 
 /** Sends the notice and the evidence pack to the advocate through Hisaab, in one go. */
-export async function sendToAdvocate(rec: CaseRecord, v: { email: string; noticeText: string; images: Pic[]; payment?: Payment }): Promise<SendResult> {
+export async function sendToAdvocate(rec: CaseRecord, v: { email: string; noticeText: string; images: Pic[]; addons?: string[] }): Promise<SendResult> {
   const pack = await evidencePack(v.images, rec.input.company);
   if (!pack) return { ok: false, code: "too_large", message: "Your pictures are too large to send together. Remove a few, or use smaller screenshots." };
   const notice = await noticePdfBlob(v.noticeText);
@@ -52,7 +51,7 @@ export async function sendToAdvocate(rec: CaseRecord, v: { email: string; notice
         resolution: resolutionLabel(i.resolution, i.resolutionOther),
         noticeText: v.noticeText,
         evidenceCount: v.images.length,
-        payment: v.payment,
+        addons: v.addons ?? [],
         noticePdf: await toBase64(notice),
         evidencePdf: await toBase64(pack),
       }),
@@ -66,7 +65,7 @@ export async function sendToAdvocate(rec: CaseRecord, v: { email: string; notice
   }
 }
 
-const LOCAL_STATUS: Record<string, CaseStatus> = { submitted: "review", approved: "approved", sent: "sent", declined: "ready" };
+const LOCAL_STATUS: Record<string, CaseStatus> = { submitted: "review", quoted: "review", approved: "approved", sent: "sent", declined: "ready" };
 
 /** Asks the server what the advocate has done and writes anything new into the case. These are real, not self-recorded. */
 export async function syncAdvocate(rec: CaseRecord): Promise<"updated" | "same" | "unavailable"> {
@@ -75,23 +74,39 @@ export async function syncAdvocate(rec: CaseRecord): Promise<"updated" | "same" 
   try {
     const res = await fetch(`/api/advocate/status?id=${encodeURIComponent(s.ref)}&token=${encodeURIComponent(s.token)}`, { cache: "no-store" });
     if (!res.ok) return "unavailable";
-    const d = (await res.json()) as { status: string; advocateNote: string; history: { at: string; text: string }[] };
+    const d = (await res.json()) as { status: string; advocateNote: string; history: { at: string; text: string }[]; payment?: NonNullable<NonNullable<CaseRecord["submission"]>["payment"]> };
     let changed = false;
     mutateCase(rec.id, (cur) => {
       const have = new Set(cur.events.map((e) => e.id));
       const events = d.history
         .map((h, i) => ({ id: `adv:${s.ref}:${i}`, at: h.at, kind: "status" as const, text: h.text, byUser: false }))
         .filter((e) => !have.has(e.id));
-      const same = cur.submission?.lastStatus === d.status && cur.submission?.note === d.advocateNote;
+      const pay = d.payment ?? null;
+      const same = cur.submission?.lastStatus === d.status && cur.submission?.note === d.advocateNote && JSON.stringify(cur.submission?.payment ?? null) === JSON.stringify(pay);
       if (!events.length && same) return {};
       changed = true;
-      const patch: Partial<CaseRecord> = { submission: { ...cur.submission!, lastStatus: d.status, note: d.advocateNote } };
+      const patch: Partial<CaseRecord> = { submission: { ...cur.submission!, lastStatus: d.status, note: d.advocateNote, payment: pay } };
       if (events.length && LOCAL_STATUS[d.status]) patch.status = LOCAL_STATUS[d.status];
       return { patch, events };
     });
     return changed ? "updated" : "same";
   } catch {
     return "unavailable";
+  }
+}
+
+/** Tells the advocate the fee has been paid. She confirms it when it shows in her account. */
+export async function reportPayment(rec: CaseRecord, utr: string): Promise<{ ok: true } | { ok: false; message: string }> {
+  const s = rec.submission;
+  if (!s?.token) return { ok: false, message: "This request can't be updated from here." };
+  try {
+    const res = await fetch("/api/advocate/pay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: s.ref, token: s.token, utr }) });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, message: d.error ?? "Something went wrong. Please try again." };
+    await syncAdvocate(rec);
+    return { ok: true };
+  } catch {
+    return { ok: false, message: "Network problem. Please try again." };
   }
 }
 

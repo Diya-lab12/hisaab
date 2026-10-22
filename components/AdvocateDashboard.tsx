@@ -1,12 +1,13 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { ADVOCATE } from "@/lib/advocate";
+import { ADDONS, quote, upiAccount } from "@/lib/pricing";
 
 type Sub = {
   id: string;
   createdAt: string;
   updatedAt: string;
-  status: "submitted" | "approved" | "sent" | "declined";
+  status: "submitted" | "quoted" | "approved" | "sent" | "declined";
   client: { name: string; email: string; contact: string; address: string };
   company: { brand: string; legalName: string; address: string; cin: string; email: string };
   issue: string;
@@ -16,11 +17,12 @@ type Sub = {
   noticeText: string;
   evidenceCount: number;
   advocateNote: string;
-  payment?: { ref: string; utr: string; total: number; fee: number; items: { id: string; label: string; price: number }[]; verified: boolean };
+  addons?: string[];
+  payment?: { ref: string; amount: number; items: { id: string; label: string; price: number }[]; utr: string; verified: boolean };
   history: { at: string; text: string }[];
 };
 
-const LABEL: Record<Sub["status"], string> = { submitted: "Waiting for review", approved: "Approved and signed", sent: "Sent to the company", declined: "Changes requested" };
+const LABEL: Record<Sub["status"], string> = { submitted: "Waiting for review", quoted: "Waiting for payment", approved: "Approved and signed", sent: "Sent to the company", declined: "Changes requested" };
 const stamp = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
 
 function toBase64(file: File): Promise<string> {
@@ -43,6 +45,8 @@ export default function AdvocateDashboard() {
   const [pdf, setPdf] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [fee, setFee] = useState("");
+  const paymentsOn = Boolean(upiAccount());
 
   const load = useCallback(async () => {
     const r = await fetch("/api/advocate/list");
@@ -75,7 +79,7 @@ export default function AdvocateDashboard() {
     await load();
   }
 
-  async function decide(id: string, action: "approve" | "sent" | "decline" | "paid") {
+  async function decide(id: string, action: "approve" | "sent" | "decline" | "paid" | "quote") {
     setBusy(true);
     setMsg(null);
     try {
@@ -84,10 +88,10 @@ export default function AdvocateDashboard() {
         if (pdf.size > 2_400_000) throw new Error("That PDF is over 2.4 MB. Compress it and try again.");
         signedPdf = await toBase64(pdf);
       }
-      const r = await fetch("/api/advocate/decide", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action, note, signedPdf }) });
+      const r = await fetch("/api/advocate/decide", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action, note, signedPdf, amount: fee === "" ? undefined : Number(fee) }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error ?? "Something went wrong.");
-      setMsg(action === "paid" ? "Marked as received." : (d.warning ?? "Done. The client has been emailed and their Hisaab case will update."));
+      setMsg(action === "paid" ? "Marked as received." : action === "quote" ? "Done. The client has been emailed the fee and can pay from their Hisaab case." : (d.warning ?? "Done. The client has been emailed and their Hisaab case will update."));
       setNote("");
       setPdf(null);
       await load();
@@ -145,8 +149,8 @@ export default function AdvocateDashboard() {
           <ul className="adv-list" aria-label="Requests">
             {subs.map((s) => (
               <li key={s.id}>
-                <button type="button" className={s.id === openId ? "on" : ""} onClick={() => { setOpenId(s.id); setNote(""); setPdf(null); setMsg(null); }}>
-                  <strong>{s.company.brand}</strong> · ₹{s.amount}{s.payment && !s.payment.verified ? " · unpaid?" : ""}{s.payment?.items.some((i) => i.id === "priority") ? " · priority" : ""}
+                <button type="button" className={s.id === openId ? "on" : ""} onClick={() => { setOpenId(s.id); setNote(""); setPdf(null); setMsg(null); setFee(String(quote(Number(s.amount) || 0, s.addons ?? []).total)); }}>
+                  <strong>{s.company.brand}</strong> · ₹{s.amount}{s.payment && !s.payment.verified ? (s.payment.utr ? " · check payment" : " · unpaid") : ""}{s.addons?.includes("priority") ? " · priority" : ""}
                   <span className={`badge st-${s.status === "submitted" ? "review" : s.status === "declined" ? "ready" : s.status}`}>{LABEL[s.status]}</span>
                   <span className="fine">{s.client.name} · ref {s.id} · {stamp(s.updatedAt)}</span>
                 </button>
@@ -175,16 +179,20 @@ export default function AdvocateDashboard() {
                     <div key={k} className="rv-row"><dt>{k}</dt><dd>{v}</dd><span /></div>
                   ))}
                 </dl>
-                {open.payment && (
+                {(open.addons?.length ?? 0) > 0 && (
+                  <p className="fine">Extras the client asked for: {ADDONS.filter((x) => open.addons!.includes(x.id)).map((x) => x.label).join(", ")}.</p>
+                )}
+                {open.payment && open.payment.amount > 0 && (
                   <div className={`callout ${open.payment.verified ? "" : "warn"}`}>
                     <p>
-                      <strong>{open.payment.verified ? "Payment received" : "Check your UPI app"}: ₹{open.payment.total.toLocaleString("en-IN")}</strong>
+                      <strong>
+                        {open.payment.verified ? "Payment received" : open.payment.utr ? "Check your UPI app" : "Waiting for the client to pay"}: ₹{open.payment.amount.toLocaleString("en-IN")}
+                      </strong>
                     </p>
                     <p className="fine">
-                      Payment note <code>{open.payment.ref}</code> · UPI transaction ID <code>{open.payment.utr}</code>. Review fee ₹{open.payment.fee}
-                      {open.payment.items.map((i) => ` · ${i.label} ₹${i.price}`).join("")}.
+                      Payment note <code>{open.payment.ref}</code>{open.payment.utr ? <> · UPI transaction ID <code>{open.payment.utr}</code></> : null}
                     </p>
-                    {!open.payment.verified && (
+                    {!open.payment.verified && open.payment.utr && (
                       <button type="button" className="button small primary" disabled={busy} onClick={() => decide(open.id, "paid")}>Payment received</button>
                     )}
                   </div>
@@ -198,9 +206,24 @@ export default function AdvocateDashboard() {
                 <textarea id="adv-note" rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
                 <label className="side-label" htmlFor="adv-pdf">Signed notice (PDF, optional, up to about 2.4 MB)</label>
                 <input id="adv-pdf" type="file" accept="application/pdf" onChange={(e) => setPdf(e.target.files?.[0] ?? null)} />
+                {paymentsOn && !open.payment && (open.status === "submitted" || open.status === "declined") && (
+                  <div className="callout">
+                    <label className="side-label" htmlFor="adv-fee">Fee for this case, in rupees (prefilled from the claim and the extras)</label>
+                    <input id="adv-fee" type="number" min={0} inputMode="numeric" value={fee} onChange={(e) => setFee(e.target.value)} />
+                    <div className="stack-row">
+                      <button type="button" className="button primary" disabled={busy || fee === ""} onClick={() => decide(open.id, "quote")}>
+                        {Number(fee) === 0 ? "Take the case and waive the fee" : `Take the case and ask for ₹${Number(fee).toLocaleString("en-IN")}`}
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <div className="stack-row">
-                  <button type="button" className="button primary" disabled={busy} onClick={() => decide(open.id, "approve")}>Approve and notify client</button>
-                  <button type="button" className="button" disabled={busy} onClick={() => decide(open.id, "sent")}>Mark as sent to the company</button>
+                  {(!paymentsOn || open.payment?.verified) && (
+                    <>
+                      <button type="button" className="button primary" disabled={busy} onClick={() => decide(open.id, "approve")}>Approve and notify client</button>
+                      <button type="button" className="button" disabled={busy} onClick={() => decide(open.id, "sent")}>Mark as sent to the company</button>
+                    </>
+                  )}
                   <button type="button" className="button" disabled={busy} onClick={() => decide(open.id, "decline")}>Ask for changes</button>
                 </div>
                 {msg && <p className="callout" role="status">{msg}</p>}

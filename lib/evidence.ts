@@ -24,7 +24,7 @@ export type EvidenceImage = {
 };
 
 export const MAX_PER_SCOPE = 12;
-export const MAX_PER_SLOT = 4;
+export const MAX_PER_SLOT = 12;
 const MAX_FILE_BYTES = 15 * 1024 * 1024;
 const MAX_SIDE = 1600;
 export const NEW_SCOPE = "new";
@@ -138,7 +138,7 @@ export async function addEvidence(files: File[], scope: string, slot: string): P
       break;
     }
     if (inSlot >= MAX_PER_SLOT) {
-      problems.push(`You can add up to ${MAX_PER_SLOT} pictures to one item. Remove one to add another.`);
+      problems.push(`You can add up to ${MAX_PER_SLOT} pictures to one case. Remove one to add another.`);
       break;
     }
     if (!file.type.startsWith("image/")) {

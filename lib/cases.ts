@@ -54,7 +54,7 @@ export type CaseRecord = {
   /** True when the browser refused to store it, so it exists only in this tab. */
   unsaved?: boolean;
   /** Set when the case was sent to the advocate through Hisaab. The token is the client's secret for checking status. */
-  submission?: { ref: string; token: string; email: string; sentAt: string; lastStatus: string; note?: string; tracked?: boolean; paid?: { ref: string; total: number; addons: string[] } };
+  submission?: { ref: string; token: string; email: string; sentAt: string; lastStatus: string; note?: string; tracked?: boolean; addons?: string[]; payment?: { ref: string; amount: number; items: { id: string; label: string; price: number }[]; utr: string; verified: boolean } | null };
 };
 
 const LOCAL_KEY = "hisaab-cases-v1";
@@ -239,9 +239,7 @@ export type NextAction = { title: string; body: string; anchor?: string; anchorL
  * `have` is the set of checklist items that have a picture added in this session.
  */
 export function nextAction(rec: CaseRecord, have: Set<string>, now = new Date()): NextAction {
-  const items = evidenceFor(rec.issue);
-  const everAdded = (id: string) => have.has(id) || (rec.evidence[id]?.count ?? 0) > 0;
-  const missing = items.filter((i) => !everAdded(i.id));
+  const anyEvidence = have.size > 0 || Object.values(rec.evidence).some((e) => e.count > 0);
   const fu = followUpLabel(rec.followUpDate, now);
   const sentEvent = [...rec.events].reverse().find((e) => e.kind === "status" && e.text.startsWith("Sent"));
 
@@ -306,10 +304,10 @@ export function nextAction(rec: CaseRecord, have: Set<string>, now = new Date())
   if (!rec.result) {
     return { title: "Finish your complaint", body: "Your answers are saved as a draft. Continue to check your case and prepare the complaint.", anchor: "continue", anchorLabel: "Continue draft" };
   }
-  if (missing.length > 0) {
+  if (!anyEvidence) {
     return {
-      title: "Add the missing evidence",
-      body: `Add ${missing[0].phrase} ${missing[0].purpose}. You can still read and edit your complaint first.`,
+      title: "Add your pictures as evidence",
+      body: `Add pictures such as ${evidenceFor(rec.issue).slice(0, 3).map((i) => i.phrase).join(", ")}. You can still read and edit your complaint first.`,
       anchor: "evidence",
       anchorLabel: "Add evidence",
     };
@@ -323,11 +321,8 @@ export function nextAction(rec: CaseRecord, have: Set<string>, now = new Date())
 }
 
 /** A plain sentence about the checklist. It never rates the case or predicts an outcome. */
-export function evidenceSummary(issue: string, have: (id: string) => boolean): string {
+export function evidenceSummary(issue: string, hasAny: boolean): string {
   const items = evidenceFor(issue);
-  const added = items.filter((i) => have(i.id));
-  const missing = items.filter((i) => !have(i.id));
-  if (added.length === 0) return `Start with ${items[0].phrase}: add it ${items[0].purpose}.`;
-  if (missing.length === 0) return "You've added a picture for every item. Check each one is clear and shows dates and amounts.";
-  return `You've added ${added[0].phrase}. Add ${missing[0].phrase} ${missing[0].purpose}.`;
+  if (!hasAny) return `Start with ${items[0].phrase}. Then add anything else that shows what happened.`;
+  return "Check each picture is clear and shows dates and amounts. You can add more.";
 }

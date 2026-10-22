@@ -2,8 +2,8 @@
   --page: #f7f9fc;
   --surface: #ffffff;
   --ink: #142b43;          /* headings */
-  --body: #596779;         /* body text */
-  --muted: #596779;
+  --body: #364457;         /* body text, darkened for contrast */
+  --muted: #465568;
   --line: #dfe6ed;
   --primary: #075566;
   --primary-hover: #064653;
@@ -533,7 +533,7 @@ p, .help, .sub, .how p, .situation .d, .issue .d, .ex-d { line-height: 1.65; }
 .page { padding-top: 24px; }
 .block { margin-top: clamp(28px, 4.5vw, 44px); }
 .home .intro { padding-top: clamp(12px, 3.5vw, 36px); }
-.placeholder, input::placeholder, textarea::placeholder { color: #67768a; opacity: 1 !important; }
+.placeholder, input::placeholder, textarea::placeholder { color: #55657a; opacity: 1 !important; }
 :focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 a:not([class]) { color: var(--primary); }
 

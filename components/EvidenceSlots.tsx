@@ -9,6 +9,8 @@ import { askAi, reviewPicture } from "@/lib/pictureReview";
 
 export type EvidenceChange = { kind: "add" | "remove"; slot: string; count: number; names: string[] };
 
+const SLOT = OTHER_SLOT.id;
+const ITEM = { id: OTHER_SLOT.id, label: "Evidence", purpose: "to support your complaint" };
 const WARN = new Set(["weak", "mismatch", "unreadable"]);
 const CHIP: Record<string, string> = { match: "Looks right", weak: "Not sure", mismatch: "Check this one", unreadable: "Couldn't read text", photo: "Photo" };
 
@@ -110,38 +112,35 @@ export default function EvidenceSlots({
   const all = useAllEvidence();
   const mine = useMemo(() => forScope(all, scope), [all, scope]);
   const [problems, setProblems] = useState<string[]>([]);
-  const [busy, setBusy] = useState<string | null>(null);
-  const baseId = useId();
-  const items = [...evidenceFor(issue), OTHER_SLOT];
+  const [busy, setBusy] = useState(false);
+  const inputId = useId();
   const ctx: CaseContext = { ...context, issue };
 
-  const inMemory = (id: string) => mine.filter((m) => m.slot === id);
-  const rememberedOnly = (id: string) => inMemory(id).length === 0 && (saved?.[id]?.count ?? 0) > 0;
-  const haveAny = (id: string) => inMemory(id).length > 0 || (saved?.[id]?.count ?? 0) > 0;
+  const haveAny = (saved?.[SLOT]?.count ?? 0) > 0 || Object.values(saved ?? {}).some((e) => e.count > 0);
 
-  async function add(slot: string, files: File[]) {
+  async function add(files: File[]) {
     if (!files.length) return;
-    setBusy(slot);
-    const { problems: p, added } = await addEvidence(files, scope, slot);
+    setBusy(true);
+    const { problems: p, added } = await addEvidence(files, scope, SLOT);
     setProblems(p);
-    const s = summarise(scope)[slot];
-    onChange?.({ kind: "add", slot, count: s?.count ?? 0, names: s?.names ?? [] });
-    setBusy(null);
+    const s = summarise(scope)[SLOT];
+    onChange?.({ kind: "add", slot: SLOT, count: s?.count ?? 0, names: s?.names ?? [] });
+    setBusy(false);
     for (const img of added) void reviewPicture(img, ctx); // reads on this device, one at a time
   }
 
-  function remove(slot: string, id: string) {
+  function remove(id: string) {
     removeEvidence(id);
-    const s = summarise(scope)[slot];
-    onChange?.({ kind: "remove", slot, count: s?.count ?? 0, names: s?.names ?? [] });
+    const s = summarise(scope)[SLOT];
+    onChange?.({ kind: "remove", slot: SLOT, count: s?.count ?? 0, names: s?.names ?? [] });
   }
 
-  const anyRemembered = items.some((i) => rememberedOnly(i.id));
+  const anyRemembered = mine.length === 0 && Object.values(saved ?? {}).some((e) => e.count > 0);
   const toCheck = mine.filter(needsLook).length;
 
   return (
     <div className="evidence">
-      <p className="ev-summary" role="status">{evidenceSummary(issue, haveAny)}</p>
+      <p className="ev-summary" role="status">{evidenceSummary(issue, mine.length > 0 || haveAny)}</p>
       {toCheck > 0 && (
         <p className="callout warn" role="status">
           {toCheck} picture{toCheck > 1 ? "s don't" : " doesn't"} clearly match what the checklist asks for. Take a look below. You can keep any of them.
@@ -153,50 +152,40 @@ export default function EvidenceSlots({
         </p>
       )}
 
-      <ul className="slots">
-        {items.map((item) => {
-          const imgs = inMemory(item.id);
-          const inputId = `${baseId}-${item.id}`;
-          const state = imgs.length ? "added" : rememberedOnly(item.id) ? "earlier" : "missing";
-          const look = imgs.filter(needsLook).length;
-          return (
-            <li key={item.id} className={`slot ${state}`}>
-              <div className="slot-head">
-                <div>
-                  <strong>{item.label}</strong>
-                  <span className={`chip ${state}`}>
-                    {state === "added" ? `${imgs.length} added${look ? ` · ${look} to check` : ""}` : state === "earlier" ? "Added earlier, add again" : "Not added yet"}
-                  </span>
-                </div>
-                <div>
-                  <input
-                    id={inputId}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="sr-only"
-                    disabled={busy !== null || mine.length >= MAX_PER_SCOPE}
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files ?? []);
-                      e.target.value = "";
-                      void add(item.id, files);
-                    }}
-                  />
-                  <label htmlFor={inputId} className="button small">{busy === item.id ? "Adding…" : imgs.length ? "Add another" : "Add picture"}</label>
-                </div>
-              </div>
-              {state !== "added" && <p className="slot-why">Add this {item.purpose}.</p>}
-              {imgs.length > 0 && (
-                <ul className="pics">
-                  {imgs.map((img) => (
-                    <PictureCard key={img.id} img={img} item={item} issue={issue} onRemove={() => remove(item.id, img.id)} />
-                  ))}
-                </ul>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <div className="slot added">
+        <div className="slot-head">
+          <div>
+            <strong>Pictures as evidence</strong>
+            <span className={`chip ${mine.length ? "added" : "missing"}`}>{mine.length ? `${mine.length} added` : "Not added yet"}</span>
+          </div>
+          <div>
+            <input
+              id={inputId}
+              type="file"
+              accept="image/*"
+              multiple
+              className="sr-only"
+              disabled={busy || mine.length >= MAX_PER_SCOPE}
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? []);
+                e.target.value = "";
+                void add(files);
+              }}
+            />
+            <label htmlFor={inputId} className="button small">{busy ? "Adding…" : mine.length ? "Add more" : "Add pictures"}</label>
+          </div>
+        </div>
+        <p className="slot-why">
+          Add as many as you need at once: {evidenceFor(issue).map((i) => i.label.toLowerCase()).join(", ")}.
+        </p>
+        {mine.length > 0 && (
+          <ul className="pics">
+            {mine.map((img) => (
+              <PictureCard key={img.id} img={img} item={ITEM} issue={issue} onRemove={() => remove(img.id)} />
+            ))}
+          </ul>
+        )}
+      </div>
 
       {problems.length > 0 && <ul className="problems" role="alert">{problems.map((p, i) => <li key={i}>{p}</li>)}</ul>}
 

@@ -12,5 +12,5 @@ export async function GET(req: Request) {
   const sub = await getSubmission(u.searchParams.get("id") ?? "");
   const token = u.searchParams.get("token") ?? "";
   if (!sub || !token || sub.tokenHash !== hashToken(token)) return json({ error: "Not found." }, 404);
-  return json({ status: sub.status, advocateNote: sub.advocateNote, updatedAt: sub.updatedAt, history: sub.history });
+  return json({ status: sub.status, advocateNote: sub.advocateNote, updatedAt: sub.updatedAt, history: sub.history, payment: sub.payment ? { ref: sub.payment.ref, amount: sub.payment.amount, items: sub.payment.items, utr: sub.payment.utr, verified: sub.payment.verified } : null });
 }

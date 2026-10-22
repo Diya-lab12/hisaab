@@ -2,7 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { redis, redisConfigured } from "./env";
 
-export type SubmissionStatus = "submitted" | "approved" | "sent" | "declined";
+export type SubmissionStatus = "submitted" | "quoted" | "approved" | "sent" | "declined";
 
 export type Submission = {
   id: string;
@@ -20,8 +20,10 @@ export type Submission = {
   noticeText: string;
   evidenceCount: number;
   advocateNote: string;
-  /** Set when the review is paid for. The client's UPI transaction ID is a claim until the advocate sees the money. */
-  payment?: { ref: string; utr: string; total: number; fee: number; items: { id: string; label: string; price: number }[]; verified: boolean };
+  /** Extras the client would like. The advocate sets the real fee after reading the case. */
+  addons?: string[];
+  /** Set when the advocate asks for payment. The client's UPI transaction ID is only a claim until she sees the money. */
+  payment?: { ref: string; amount: number; items: { id: string; label: string; price: number }[]; utr: string; verified: boolean; requestedAt: string };
   /** What the client sees. Written by the system when something really happens. */
   history: { at: string; text: string }[];
 };

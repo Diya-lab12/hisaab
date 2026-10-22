@@ -32,7 +32,7 @@ function toBase64(file: File): Promise<string> {
 }
 
 export default function AdvocateDashboard() {
-  const [phase, setPhase] = useState<"loading" | "setup" | "login" | "in">("loading");
+  const [phase, setPhase] = useState<"loading" | "setup" | "login" | "in" | "nostorage">("loading");
   const [missing, setMissing] = useState<string[]>([]);
   const [pass, setPass] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -46,6 +46,10 @@ export default function AdvocateDashboard() {
   const load = useCallback(async () => {
     const r = await fetch("/api/advocate/list");
     if (r.status === 401) return setPhase("login");
+    if (r.status === 503) {
+      setMissing(["storage (UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)"]);
+      return setPhase("nostorage");
+    }
     const d = await r.json();
     setSubs(d.submissions ?? []);
     setPhase("in");
@@ -99,6 +103,15 @@ export default function AdvocateDashboard() {
         <h2>Approvals aren&apos;t set up yet</h2>
         <p className="help">To use this page, set these in your hosting settings: <code>ADVOCATE_PASSPHRASE</code> and <code>SESSION_SECRET</code>.</p>
         {missing.length > 0 && <p className="help">Also still missing: {missing.join("; ")}.</p>}
+      </div>
+    );
+  }
+  if (phase === "nostorage") {
+    return (
+      <div className="panel narrow">
+        <h2>No storage connected yet</h2>
+        <p className="help">Requests still reach your email, but this page can&apos;t list them or update clients until storage is set up. Add <code>UPSTASH_REDIS_REST_URL</code> and <code>UPSTASH_REDIS_REST_TOKEN</code> in your hosting settings (Vercel Marketplace, Upstash Redis).</p>
+        <p className="help">Until then, answer each client by replying to the request email: the reply goes straight to them.</p>
       </div>
     );
   }

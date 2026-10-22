@@ -1,5 +1,5 @@
 import { ADVOCATE } from "@/lib/advocate";
-import { backendReady } from "@/lib/server/env";
+import { sendReady, trackingReady } from "@/lib/server/env";
 import { EMAIL, json, limited, originOf, str } from "@/lib/server/http";
 import { sendMail } from "@/lib/server/mail";
 import { deleteSubmission, putSubmission, type Submission } from "@/lib/server/store";
@@ -10,8 +10,9 @@ export const maxDuration = 60;
 const MAX_PDF_B64 = 3_400_000; // about 2.5 MB of PDF
 
 export async function POST(req: Request) {
-  const ready = backendReady();
+  const ready = sendReady();
   if (!ready.ok) return json({ error: "not_configured", missing: ready.missing }, 503);
+  const tracked = trackingReady().ok; // without storage the email still goes, but nothing can be tracked
   if (limited(req, "submit", 5, 60 * 60 * 1000)) return json({ error: "Too many requests. Please try again in a while." }, 429);
 
   let b: Record<string, unknown>;
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
     history: [{ at: now, text: "Received by the advocate for review." }],
   };
 
-  await putSubmission(sub);
+  if (tracked) await putSubmission(sub);
   const dashboard = `${originOf(req)}/advocate`;
   try {
     await sendMail({
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
         `A client has asked you to review a legal notice.`,
         ``,
         `Reference: ${id}`,
-        `Open the approval page: ${dashboard}`,
+        ...(tracked ? [`Open the approval page: ${dashboard}`] : [`(Status tracking is off, so reply to the client by email: replying goes to ${email}.)`]),
         ``,
         `CLIENT`,
         `Name: ${sub.client.name}`,
@@ -97,7 +98,7 @@ export async function POST(req: Request) {
       ],
     });
   } catch {
-    await deleteSubmission(id);
+    if (tracked) await deleteSubmission(id);
     return json({ error: "We couldn't reach the advocate's inbox, so nothing was sent. Please try again." }, 502);
   }
 
@@ -106,10 +107,10 @@ export async function POST(req: Request) {
     await sendMail({
       to: email,
       subject: `Your notice has been sent to the advocate (ref ${id})`,
-      text: `Hello ${sub.client.name},\n\nYour draft notice about ${sub.company.brand} has been sent to ${ADVOCATE.name}, Advocate (${ADVOCATE.council}), for review.\n\nReference: ${id}\n\nNothing has been sent to the company yet. You will get an email when the advocate responds, and the status in your Hisaab case will update.\n\nHisaab provides general information, not legal advice.`,
+      text: `Hello ${sub.client.name},\n\nYour draft notice about ${sub.company.brand} has been sent to ${ADVOCATE.name}, Advocate (${ADVOCATE.council}), for review.\n\nReference: ${id}\n\nNothing has been sent to the company yet. ${tracked ? "You will get an email when the advocate responds, and the status in your Hisaab case will update." : "The advocate will reply to you by email. Your Hisaab case does not update by itself, so you can record updates there yourself."}\n\nHisaab provides general information, not legal advice.`,
     });
   } catch {
     /* ignore */
   }
-  return json({ ok: true, ref: id, token, status: sub.status });
+  return json({ ok: true, ref: id, token: tracked ? token : "", tracked, status: sub.status });
 }

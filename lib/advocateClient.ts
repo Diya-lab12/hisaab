@@ -27,7 +27,7 @@ async function evidencePack(images: Pic[], company: string): Promise<Blob | null
 }
 
 export type SendResult =
-  | { ok: true; ref: string; token: string }
+  | { ok: true; ref: string; token: string; tracked: boolean }
   | { ok: false; code: "not_configured" | "too_large" | "error"; message: string };
 
 /** Sends the notice and the evidence pack to the advocate through Hisaab, in one go. */
@@ -58,7 +58,7 @@ export async function sendToAdvocate(rec: CaseRecord, v: { email: string; notice
     const d = await res.json().catch(() => ({}));
     if (res.status === 503 && d.error === "not_configured") return { ok: false, code: "not_configured", message: "Sending straight to the advocate isn't switched on yet." };
     if (!res.ok) return { ok: false, code: "error", message: d.error ?? "Something went wrong. Nothing was sent." };
-    return { ok: true, ref: d.ref, token: d.token };
+    return { ok: true, ref: d.ref, token: d.token ?? "", tracked: d.tracked !== false };
   } catch {
     return { ok: false, code: "error", message: "Network problem. Nothing was sent. Please try again." };
   }
@@ -69,7 +69,7 @@ const LOCAL_STATUS: Record<string, CaseStatus> = { submitted: "review", approved
 /** Asks the server what the advocate has done and writes anything new into the case. These are real, not self-recorded. */
 export async function syncAdvocate(rec: CaseRecord): Promise<"updated" | "same" | "unavailable"> {
   const s = rec.submission;
-  if (!s) return "same";
+  if (!s || s.tracked === false || !s.token) return "same";
   try {
     const res = await fetch(`/api/advocate/status?id=${encodeURIComponent(s.ref)}&token=${encodeURIComponent(s.token)}`, { cache: "no-store" });
     if (!res.ok) return "unavailable";

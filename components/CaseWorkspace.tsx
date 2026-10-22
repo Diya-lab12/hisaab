@@ -451,7 +451,7 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
     const res = await sendToAdvocate(rec, { email: email.trim(), noticeText: text, images });
     if (res.ok) {
       mutateCase(rec.id, () => ({
-        patch: { status: "review", submission: { ref: res.ref, token: res.token, email: email.trim(), sentAt: new Date().toISOString(), lastStatus: "submitted" } },
+        patch: { status: "review", submission: { ref: res.ref, token: res.token, email: email.trim(), sentAt: new Date().toISOString(), lastStatus: "submitted", tracked: res.tracked } },
         events: [makeEvent("status", `Sent to the advocate for review (reference ${res.ref}).`, false)],
       }));
       setAgain(false);
@@ -478,11 +478,15 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
       {!showForm && sub ? (
         <div className="adv-sent">
           <p><strong>Sent to {ADVOCATE.name} on {new Date(sub.sentAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}.</strong> Reference <code>{sub.ref}</code>.</p>
-          <p className={`adv-status ${sub.lastStatus}`}>{SERVER_LABEL[sub.lastStatus] ?? "Waiting for the advocate"}</p>
+          <p className={`adv-status ${sub.lastStatus}`}>{sub.tracked === false ? "Sent to the advocate by email" : SERVER_LABEL[sub.lastStatus] ?? "Waiting for the advocate"}</p>
           {sub.note && <p className="callout"><strong>Note from the advocate:</strong> {sub.note}</p>}
-          <p className="fine">We email {sub.email} when the advocate responds, and this page updates by itself.</p>
+          {sub.tracked === false ? (
+            <p className="fine">The advocate will reply to {sub.email}. In this setup this page can&apos;t update by itself, so when you hear back, record it using the status box on the right.</p>
+          ) : (
+            <p className="fine">We email {sub.email} when the advocate responds, and this page updates by itself.</p>
+          )}
           <div className="stack-row">
-            <button type="button" className="button small" onClick={check} disabled={checking}>{checking ? "Checking…" : "Check for updates"}</button>
+            {sub.tracked !== false && <button type="button" className="button small" onClick={check} disabled={checking}>{checking ? "Checking…" : "Check for updates"}</button>}
             {sub.lastStatus === "declined" && <button type="button" className="button small primary" onClick={() => setAgain(true)}>Edit and send again</button>}
           </div>
         </div>
@@ -493,7 +497,7 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
             <span>{ADVOCATE.council} · Enrolment No. {ADVOCATE.enrolment}</span>
             <span>{ADVOCATE.place}</span>
           </div>
-          <p>You can&apos;t send this notice to the company yourself. The advocate reviews it, signs it and sends it to the company. You&apos;ll get an email when she responds, and this page updates by itself.</p>
+          <p>You can&apos;t send this notice to the company yourself. The advocate reviews it, signs it and sends it to the company. She replies to you by email, and this page updates by itself when it can.</p>
 
           <ul className="checks">
             <li className={hasEvidence ? "ok" : "no"}>

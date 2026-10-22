@@ -54,7 +54,7 @@ export type CaseRecord = {
   /** True when the browser refused to store it, so it exists only in this tab. */
   unsaved?: boolean;
   /** Set when the case was sent to the advocate through Hisaab. The token is the client's secret for checking status. */
-  submission?: { ref: string; token: string; email: string; sentAt: string; lastStatus: string; note?: string };
+  submission?: { ref: string; token: string; email: string; sentAt: string; lastStatus: string; note?: string; tracked?: boolean };
 };
 
 const LOCAL_KEY = "hisaab-cases-v1";
@@ -252,10 +252,12 @@ export function nextAction(rec: CaseRecord, have: Set<string>, now = new Date())
     return {
       title: "Waiting for the advocate",
       body: rec.submission
-        ? "Your notice is with the advocate. You'll get an email when they respond, and this page updates by itself."
+        ? rec.submission.tracked === false
+          ? "Your notice has been emailed to the advocate. They'll reply to you by email. When you hear back, record it here."
+          : "Your notice is with the advocate. You'll get an email when they respond, and this page updates by itself."
         : "You've asked the advocate to review your notice. When the signed notice has been sent to the company, record that here.",
       anchor: "record",
-      anchorLabel: rec.submission ? "Check for updates" : "Record an update",
+      anchorLabel: rec.submission?.tracked === false || !rec.submission ? "Record an update" : "Check for updates",
     };
   }
   if (rec.status === "approved") {

@@ -1,5 +1,6 @@
 import { ADVOCATE } from "@/lib/advocate";
 import { isAdvocate } from "@/lib/server/auth";
+import { trackingReady } from "@/lib/server/env";
 import { json, str } from "@/lib/server/http";
 import { sendMail } from "@/lib/server/mail";
 import { getSubmission, putSubmission, type SubmissionStatus } from "@/lib/server/store";
@@ -15,6 +16,7 @@ const NEXT: Record<string, { to: SubmissionStatus; from: SubmissionStatus[] }> =
 
 export async function POST(req: Request) {
   if (!(await isAdvocate())) return json({ error: "Not signed in." }, 401);
+  if (!trackingReady().ok) return json({ error: "Storage isn't set up yet." }, 503);
   let b: Record<string, unknown>;
   try {
     b = await req.json();

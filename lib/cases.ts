@@ -1,0 +1,299 @@
+import { useMemo, useSyncExternalStore } from "react";
+import type { ComplaintInput } from "./checks";
+import { evidenceFor } from "./evidenceItems";
+import { NOTICE_DEADLINE_DAYS } from "./config";
+import { addDays, daysFromToday, toIso } from "./deadlines";
+import type { Result } from "./types";
+
+// Cases are saved only in this browser. There is no account and no server copy, so they do not
+// sync across devices. "Session only" cases use sessionStorage and vanish when the tab closes.
+// Pictures are never saved here: only their counts and file names.
+
+export type CaseStatus = "draft" | "ready" | "sent" | "awaiting" | "resolved";
+
+export const STATUS_LABEL: Record<CaseStatus, string> = {
+  draft: "Draft",
+  ready: "Ready for review",
+  sent: "Sent — recorded by you",
+  awaiting: "Awaiting response — recorded by you",
+  resolved: "Resolved — recorded by you",
+};
+
+export type EventKind = "created" | "generated" | "regenerated" | "edited" | "evidence" | "status" | "followup" | "reply" | "date";
+
+export type CaseEvent = {
+  id: string;
+  at: string; // ISO timestamp
+  kind: EventKind;
+  text: string;
+  byUser: boolean; // true when the user recorded it (we cannot verify it)
+};
+
+export type StorageKind = "device" | "session";
+
+export type CaseRecord = {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  storage: StorageKind;
+  issue: string;
+  input: ComplaintInput;
+  /** The latest analysis, or null while the case is still a draft. */
+  result: Result | null;
+  /** The complaint text as the user last edited it. */
+  noticeText: string;
+  status: CaseStatus;
+  followUpDate: string; // yyyy-mm-dd or ""
+  events: CaseEvent[];
+  evidence: Record<string, { count: number; names: string[] }>;
+  /** Furthest wizard step reached, so a draft can be continued. */
+  step: number;
+  /** True when the browser refused to store it, so it exists only in this tab. */
+  unsaved?: boolean;
+};
+
+const LOCAL_KEY = "hisaab-cases-v1";
+const SESSION_KEY = "hisaab-cases-session-v1";
+const EVENT = "hisaab-cases-change";
+
+let memory: CaseRecord[] = []; // used only when browser storage is unavailable
+let memoryVersion = 0;
+let storageProblem = false;
+
+export function newId(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return Math.random().toString(36).slice(2) + Date.now().toString(36);
+  }
+}
+
+export function makeEvent(kind: EventKind, text: string, byUser = false): CaseEvent {
+  return { id: newId(), at: new Date().toISOString(), kind, text, byUser };
+}
+
+function emit() {
+  try {
+    window.dispatchEvent(new Event(EVENT));
+  } catch {
+    /* not in a browser */
+  }
+}
+
+function getStore(kind: StorageKind): Storage | null {
+  try {
+    return kind === "device" ? window.localStorage : window.sessionStorage;
+  } catch {
+    return null;
+  }
+}
+
+function readRaw(kind: StorageKind): string | null {
+  try {
+    return getStore(kind)?.getItem(kind === "device" ? LOCAL_KEY : SESSION_KEY) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function parse(raw: string | null, storage: StorageKind): CaseRecord[] {
+  if (!raw) return [];
+  try {
+    const list = JSON.parse(raw);
+    if (!Array.isArray(list)) return [];
+    return list
+      .filter((c) => c && typeof c.id === "string" && c.input)
+      .map((c) => ({ ...c, storage, events: Array.isArray(c.events) ? c.events : [], evidence: c.evidence ?? {} }) as CaseRecord);
+  } catch {
+    return [];
+  }
+}
+
+let cache: { key: string; list: CaseRecord[] } = { key: "\u0000", list: [] };
+const EMPTY_LIST: CaseRecord[] = [];
+
+function snapshot(): CaseRecord[] {
+  const local = readRaw("device");
+  const session = readRaw("session");
+  const key = `${local ?? ""}|${session ?? ""}|${memoryVersion}`;
+  if (key === cache.key) return cache.list;
+  const list = [...parse(local, "device"), ...parse(session, "session"), ...memory.map((m) => ({ ...m, unsaved: true }))].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  cache = { key, list };
+  return list;
+}
+
+function subscribe(cb: () => void) {
+  window.addEventListener(EVENT, cb);
+  window.addEventListener("storage", cb);
+  return () => {
+    window.removeEventListener(EVENT, cb);
+    window.removeEventListener("storage", cb);
+  };
+}
+
+export function useCases(): CaseRecord[] {
+  return useSyncExternalStore(subscribe, snapshot, () => EMPTY_LIST);
+}
+
+export function useCase(id: string | null): CaseRecord | null {
+  const all = useCases();
+  return useMemo(() => (id ? all.find((c) => c.id === id) ?? null : null), [all, id]);
+}
+
+export function useStorageProblem(): boolean {
+  return useSyncExternalStore(subscribe, () => storageProblem, () => false);
+}
+
+function writeList(kind: StorageKind, list: CaseRecord[]): boolean {
+  try {
+    const store = getStore(kind);
+    if (!store) return false;
+    const key = kind === "device" ? LOCAL_KEY : SESSION_KEY;
+    // Strip the storage tag: it is implied by where the record lives.
+    store.setItem(key, JSON.stringify(list.map((c) => ({ ...c, storage: undefined, unsaved: undefined }))));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Saves a case. Returns where it ended up: "memory" means the browser refused to store it. */
+export function saveCase(rec: CaseRecord): "device" | "session" | "memory" {
+  const next: CaseRecord = { ...rec, updatedAt: new Date().toISOString() };
+  const kind = next.storage;
+  const current = parse(readRaw(kind), kind).filter((c) => c.id !== next.id);
+  // A case can only live in one place at a time.
+  const other: StorageKind = kind === "device" ? "session" : "device";
+  const otherList = parse(readRaw(other), other);
+  if (otherList.some((c) => c.id === next.id)) writeList(other, otherList.filter((c) => c.id !== next.id));
+  memory = memory.filter((c) => c.id !== next.id);
+  const ok = writeList(kind, [next, ...current]);
+  if (ok) {
+    storageProblem = false;
+    memoryVersion++;
+    emit();
+    return kind;
+  }
+  storageProblem = true;
+  memory = [next, ...memory];
+  memoryVersion++;
+  emit();
+  return "memory";
+}
+
+export function deleteCase(id: string) {
+  for (const kind of ["device", "session"] as StorageKind[]) {
+    const list = parse(readRaw(kind), kind);
+    if (list.some((c) => c.id === id)) writeList(kind, list.filter((c) => c.id !== id));
+  }
+  memory = memory.filter((c) => c.id !== id);
+  memoryVersion++;
+  emit();
+}
+
+/**
+ * Applies a change to the LATEST saved copy of a case (not a stale copy held by a component), so quick
+ * successive actions never overwrite each other.
+ */
+export function mutateCase(id: string, change: (rec: CaseRecord) => { patch?: Partial<CaseRecord>; events?: CaseEvent[] }): CaseRecord | null {
+  const rec = snapshot().find((c) => c.id === id);
+  if (!rec) return null;
+  const { patch = {}, events = [] } = change(rec);
+  const next: CaseRecord = { ...rec, ...patch, events: [...rec.events, ...events] };
+  saveCase(next);
+  return next;
+}
+
+export function blankInput(): ComplaintInput {
+  return { name: "", address: "", contact: "", company: "", amount: "", incidentDate: "", description: "", issueType: "", resolution: "", resolutionOther: "", answers: {} };
+}
+
+/** Add events and optionally change fields, then save. */
+export function updateCase(rec: CaseRecord, patch: Partial<CaseRecord>, events: CaseEvent[] = []): CaseRecord {
+  const next: CaseRecord = { ...rec, ...patch, events: [...rec.events, ...events] };
+  saveCase(next);
+  return next;
+}
+
+// ---------- labels and next action ----------
+
+export type FollowUp = { text: string; tone: "overdue" | "due" | "upcoming" };
+
+export function followUpLabel(dateIso: string, now = new Date()): FollowUp | null {
+  if (!dateIso) return null;
+  const d = daysFromToday(dateIso, now);
+  if (d < 0) return { text: `Follow-up overdue by ${-d} day${d === -1 ? "" : "s"}`, tone: "overdue" };
+  if (d === 0) return { text: "Follow-up due today", tone: "due" };
+  return { text: `Follow-up due in ${d} day${d === 1 ? "" : "s"}`, tone: "upcoming" };
+}
+
+export type NextAction = { title: string; body: string; anchor?: string; anchorLabel?: string };
+
+/**
+ * One clear next step, from facts we know. It never invents a company deadline or contact.
+ * `have` is the set of checklist items that have a picture added in this session.
+ */
+export function nextAction(rec: CaseRecord, have: Set<string>, now = new Date()): NextAction {
+  const items = evidenceFor(rec.issue);
+  const everAdded = (id: string) => have.has(id) || (rec.evidence[id]?.count ?? 0) > 0;
+  const missing = items.filter((i) => !everAdded(i.id));
+  const fu = followUpLabel(rec.followUpDate, now);
+  const sentEvent = [...rec.events].reverse().find((e) => e.kind === "status" && e.text.startsWith("Sent"));
+
+  if (rec.status === "resolved") {
+    return { title: "Keep your records", body: "You marked this case resolved. Keep your documents and messages for a while in case the issue comes back." };
+  }
+  if (rec.status === "awaiting" || rec.status === "sent") {
+    if (fu?.tone === "overdue") {
+      return {
+        title: "Your follow-up date has passed",
+        body: "Record any reply you've had. If there is none, follow up with the company in writing, then look at the escalation options below.",
+        anchor: "escalation",
+        anchorLabel: "See escalation options",
+      };
+    }
+    if (!rec.followUpDate) {
+      const suggested = sentEvent ? addDays(toIso(new Date(sentEvent.at)), NOTICE_DEADLINE_DAYS) : "";
+      return {
+        title: "Set a follow-up date",
+        body: `Pick the day you'll check for a reply${suggested ? `. Your complaint asks for a response within ${NOTICE_DEADLINE_DAYS} days, which is around ${suggested}` : ""}. We'll show whether it is due when you come back.`,
+        anchor: "followup",
+        anchorLabel: "Set follow-up date",
+      };
+    }
+    return {
+      title: "Wait for their reply",
+      body: "Record anything the company sends you as soon as it arrives. If it resolves the problem, mark the case resolved.",
+      anchor: "record",
+      anchorLabel: "Record a reply",
+    };
+  }
+  // draft or ready
+  if (!rec.result) {
+    return { title: "Finish your complaint", body: "Your answers are saved as a draft. Continue to check your case and prepare the complaint.", anchor: "continue", anchorLabel: "Continue draft" };
+  }
+  if (missing.length > 0) {
+    return {
+      title: "Add the missing evidence",
+      body: `Add ${missing[0].phrase} ${missing[0].purpose}. You can still read and edit your complaint first.`,
+      anchor: "evidence",
+      anchorLabel: "Go to evidence",
+    };
+  }
+  return {
+    title: "Read your complaint, then send it",
+    body: "Check every fact is true, edit anything that isn't, and send it to the company's grievance contact. Come back and record that you sent it.",
+    anchor: "complaint",
+    anchorLabel: "Open complaint",
+  };
+}
+
+/** A plain sentence about the checklist. It never rates the case or predicts an outcome. */
+export function evidenceSummary(issue: string, have: (id: string) => boolean): string {
+  const items = evidenceFor(issue);
+  const added = items.filter((i) => have(i.id));
+  const missing = items.filter((i) => !have(i.id));
+  if (added.length === 0) return `Start with ${items[0].phrase}: add it ${items[0].purpose}.`;
+  if (missing.length === 0) return "You've added a picture for every item. Check each one is clear and shows dates and amounts.";
+  return `You've added ${added[0].phrase}. Add ${missing[0].phrase} ${missing[0].purpose}.`;
+}

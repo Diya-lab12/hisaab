@@ -1,38 +1,46 @@
 # Test cases
 
-Run in the app (`npm run dev`). Use your real name, address and contact.
+Run in the app (`npm run dev`). Pictures live in the open tab only, so reloading clears them.
 
-## The guided flow (page 1)
+## Home and navigation
 | # | Do this | Expect |
 |---|---|---|
-| 1 | Open the site | "Your money. Your right. Let's get it back." and a "Start your complaint" button |
-| 2 | Click Start, press Continue with nothing filled | Specific errors under each field, focus moves to the first problem, still on step 1 |
-| 3 | Pick a complaint card; type `abc` as the amount and a future date | "Enter just the number, like 1200." and "That date is in the future." |
-| 4 | Fix them; use a date over 2 years ago | Green ticks, "That's ₹1,200." hint, and an amber note about Section 69 (not a blocker) |
-| 5 | Step 2 Evidence | Suggested pictures match the company (airline, delivery app...). Drop or choose pictures: previews appear, remove works, .txt files are refused. Button says "Skip for now" until a picture is added |
-| 6 | Step 3 Your details with `12345` as contact | "Enter a valid email, or a 10-digit mobile number." |
-| 7 | Step 4 Review | Every answer is listed with an Edit link. Check my case shows "Reading the Consumer Protection Act…" |
+| 1 | Open the site | "Customer support going in circles?", "Start my complaint", "Explore an example", five situation cards, "How Hisaab helps" with four items |
+| 2 | Click each situation card | `/new?issue=...` opens with that card selected and questions that match it |
+| 3 | Use the header | Home, Example cases, My cases work and show the current page |
 
-## The result (page 2)
+## Guided flow
 | # | Do this | Expect |
 |---|---|---|
-| 8 | Swiggy ₹1,200, 2026-10-02, "Swiggy charged me ₹1,200 for an order that never arrived and refuses to refund." | Page 2 within 20s: "Yes, this is covered", sections from the checked list, steps, "Draft written by AI" notice with your details and no placeholders |
-| 9 | Edit the notice, Copy, paste into Notes | Pasted text includes your edit. "Undo my edits" restores the original |
-| 10 | Download PDF and Word | Both open with the notice |
-| 11 | Notice tab with no pictures | Email button locked with a message. Add a picture and a valid company email to unlock |
-| 12 | Download evidence pack | One PDF, one picture per page |
-| 13 | Next steps | Reply-due date is 15 days after your chosen send date; the reminder downloads a .ics; last day to file is 2 years after the incident |
-| 14 | Edit my details | Page 1 reopens on Review with everything you typed |
+| 4 | Pick each of the five situations | Refund, order not delivered, faulty product, charged after cancelling and something else each show their own date label, questions and example text |
+| 5 | Press Continue with nothing filled | Specific errors; focus moves to the first problem |
+| 6 | Fill step 1, go Back and Forward | Everything you typed is still there |
+| 7 | Evidence step | One checklist item per document, with a plain sentence about what to add next. Wrong file types are refused with a message |
+| 8 | Review step | All answers listed with Edit links. Choose "Save on this device" or "This session only". Text explains what goes to the AI and what does not |
+| 9 | Save draft, then open My cases | The draft appears with "Continue draft". Stored data has picture names and counts only, never image data |
+| 10 | Type only "my neighbour is noisy", Continue | "This looks outside the Consumer Protection Act" with where else to go. No case is saved |
 
-## Not covered, vague, and failures
+## Case workspace
 | # | Do this | Expect |
 |---|---|---|
-| 15 | Start, type only "my neighbour is noisy", Continue | Goes straight to a grey "Not covered" page with reasons. No tabs, no notice |
-| 16 | "Check another complaint" on that page | Back to the opening screen, blank |
-| 17 | Type only "bad service", Continue | Stays on step 1 and asks for the type, company, amount and date |
-| 18 | Fill everything with description "bad service" | Review step shows "We need a bit more information" with questions. No notice |
-| 19 | Reload page 2 | Pictures are gone (they live only in the open tab); email locked again |
-| 20 | Blank `OPENROUTER_API_KEY`, run #8 | Covered, with the "basic rules" notice |
-| 21 | Open /case directly | Sent back to page 1 |
+| 11 | Check my case (Swiggy ₹1,200 not delivered) | Workspace in under 20s, status "Ready for review", a next step, checklist, editable complaint, activity timeline |
+| 12 | Edit the complaint, wait a second, reload | Your edit is still there and the timeline says "You edited the complaint" |
+| 13 | Without pictures, look at the email button | Locked, with a reason. Add a picture and a valid company email to unlock |
+| 14 | Open in my email app | Nothing changes status. A prompt asks "Did you send it?" and only "Yes, I sent it" records it |
+| 15 | Set a follow-up date; set one in the past | "Follow-up due in N days" / "overdue by N days". Resolved cases show neither |
+| 16 | Record a reply and a follow-up | Both appear in the timeline as recorded by you. Empty notes are refused |
+| 17 | Change status to Resolved | Timeline records it; next step becomes "Keep your records" |
+| 18 | Reload the workspace | Checklist items show "Added earlier, add again"; the email stays locked until pictures are re-added |
+| 19 | Edit details, check again | Opens on Review; a warning says edits to the complaint will be replaced |
+| 20 | Delete a case | Asks to confirm, then it is gone from My cases |
+
+## Examples, storage and failures
+| # | Do this | Expect |
+|---|---|---|
+| 21 | Open each example | "Illustrative example" badge and a notice that it is fictional; timeline, sample evidence, missing information, an editable sample complaint, next action |
+| 22 | Edit the sample, then "I have a similar problem" | A blank case with the right category. Nothing from the example is copied. Nothing is saved |
+| 23 | Block storage (private window) and save a draft | "Couldn't save in this browser"; My cases lists it under "Only in this tab" |
+| 24 | Open /case?id=nonsense | "We couldn't find this case" with ways forward |
+| 25 | Blank `OPENROUTER_API_KEY`, run #11 | Complaint built from a template, labelled as basic rules |
 
 Terminal lines "AI analysis failed" or "Section guard removed" mean the prompt needs another look.

@@ -1,6 +1,7 @@
 // Rule-based analysis: keyword rules decide the verdict. No AI is involved.
 import { NOTICE_DEADLINE_DAYS } from "./config";
 import { ComplaintInput, formatDate, formatRupees, parseAmount } from "./checks";
+import { answerLines } from "./questions";
 import { LEGAL_SECTION_IDS } from "./legal-sources";
 
 export type Analysis =
@@ -25,6 +26,19 @@ type Category = {
 };
 
 const CATEGORIES: Category[] = [
+  {
+    name: "charged after cancelling",
+    keywords: [/subscription/, /auto-?renew/, /charged (me )?again/, /charged after/, /still (being )?charg/, /cancel+ed (my )?(plan|subscription|membership|account)/, /membership fee/],
+    explanation: "You cancelled, but the company kept charging you. Taking money for a service you ended is a deficiency in service and can be an unfair trade practice.",
+    sections: [
+      { id: "2(7)", why: "You paid for the service for your own use, so you are a 'consumer'." },
+      { id: "2(11)", why: "Charging after a cancellation is a shortcoming in how the service was performed." },
+      { id: "2(47)", why: "Refusing to refund money taken after you cancelled can be an unfair trade practice (clause (viii))." },
+      { id: "39", why: "Lets the Commission order a refund, compensation and costs." },
+    ],
+    breach: "I cancelled the service, but I was charged again afterwards. This is a deficiency in service under Section 2(11) and can be an unfair trade practice under Section 2(47) of the Consumer Protection Act, 2019.",
+    demand: "refund the amount charged after my cancellation",
+  },
   {
     name: "non-delivery / refund refused",
     keywords: [/never (arrived|came|delivered)/, /not (been )?delivered/, /did(n't| not) (arrive|receive|get)/, /refus\w* (to )?(a )?(refund|return)/, /no refund/, /won'?t refund/, /not refund/, /cancel+ed/],
@@ -122,6 +136,22 @@ export function notCoveredMatch(description: string) {
   return null;
 }
 
+const PREFERRED: Record<string, string> = {
+  refund: "refund refused",
+  delivery: "non-delivery / refund refused",
+  faulty: "defective goods",
+  subscription: "charged after cancelling",
+};
+
+function requestedDemand(input: ComplaintInput, fallback: string, category: string): string {
+  const r = input.resolution;
+  if (r === "refund") return category === "charged after cancelling" ? "refund the amount charged after my cancellation" : "refund the amount I paid";
+  if (r === "replacement") return "replace the product with a new one";
+  if (r === "repair") return "repair the problem free of charge";
+  if (r === "other" && input.resolutionOther?.trim()) return input.resolutionOther.trim().replace(/[.\s]+$/, "");
+  return fallback;
+}
+
 function wordCount(s: string): number {
   return s.trim().split(/\s+/).filter(Boolean).length;
 }
@@ -139,6 +169,8 @@ export function analyze(input: ComplaintInput): Analysis {
     .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score);
 
+  const preferred = CATEGORIES.find((c) => c.name === PREFERRED[input.issueType ?? ""]);
+  if (!scored.length && preferred && wordCount(input.description) >= 4) scored.push({ c: preferred, score: 1 });
   if (!scored.length || wordCount(input.description) < 4) {
     return {
       status: "need_more_info",
@@ -162,12 +194,13 @@ export function analyze(input: ComplaintInput): Analysis {
   const amount = formatRupees(parseAmount(input.amount));
   const date = formatDate(input.incidentDate);
   const facts = input.description.trim().replace(/\s+/g, " ");
+  const extra = answerLines(input.issueType ?? "", input.answers).map((l) => `${l.label} ${l.value}`.replace(/\?\s*/, ": ")).join(". ");
 
-  const noticeBody = `I am a consumer. I paid ${amount} to ${company}. The incident took place on ${date}. The facts are as follows: ${facts}${/[.!?]$/.test(facts) ? "" : "."}
+  const noticeBody = `I am a consumer. I paid ${amount} to ${company}. The relevant date is ${date}. The facts are as follows: ${facts}${/[.!?]$/.test(facts) ? "" : "."}${extra ? " Further details: " + extra + "." : ""}
 
 ${c.breach}
 
-I therefore demand that you ${c.demand}.`;
+I therefore request that you ${requestedDemand(input, c.demand, c.name)}.`;
 
   return {
     status: "covered",

@@ -4,25 +4,49 @@ import type { Analysis } from "@/lib/analyze";
 import { analyzeWithLLM } from "@/lib/llm";
 import { ComplaintInput, filingInfo, invalidFields, missingFields, parseAmount } from "@/lib/checks";
 import { assembleNotice } from "@/lib/notice";
-import { cleanIssue, ISSUES } from "@/lib/issues";
 import { COMMON_TIP, INDUSTRIES, industryFor } from "@/lib/categories";
+import { cleanIssue, getIssue } from "@/lib/issues";
+import { QUESTIONS, RESOLUTIONS } from "@/lib/questions";
 
 // The AI call can take several seconds; give the serverless function room (Vercel).
 export const maxDuration = 60;
 
-const FIELDS = ["name", "address", "contact", "company", "amount", "incidentDate", "description", "issueType"] as const;
+
+
+/** Builds a clean input from whatever the browser sent: unknown fields are dropped, long text is trimmed. */
+function sanitise(raw: Record<string, unknown>): ComplaintInput {
+  const str = (v: unknown, max = 2000) => (typeof v === "string" ? v.slice(0, max) : "");
+  const input: ComplaintInput = {
+    name: str(raw.name),
+    address: str(raw.address),
+    contact: str(raw.contact),
+    company: str(raw.company),
+    amount: str(raw.amount),
+    incidentDate: str(raw.incidentDate),
+    description: str(raw.description),
+    issueType: cleanIssue(raw.issueType),
+    resolution: RESOLUTIONS.some((r) => r.value === raw.resolution) ? (raw.resolution as string) : "",
+    resolutionOther: str(raw.resolutionOther, 200),
+    answers: {},
+  };
+  // Only answers to the questions for this problem, each capped, are kept.
+  const answers = raw.answers && typeof raw.answers === "object" ? (raw.answers as Record<string, unknown>) : {};
+  for (const q of QUESTIONS[(input.issueType as keyof typeof QUESTIONS) || "other"]) {
+    const v = str(answers[q.id], 500).trim();
+    if (v) input.answers![q.id] = v;
+  }
+  return input;
+}
 
 export async function POST(req: Request) {
-  let raw: Partial<Record<(typeof FIELDS)[number], unknown>>;
+  let raw: Record<string, unknown>;
   try {
     raw = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
-  const input = Object.fromEntries(
-    FIELDS.map((k) => [k, typeof raw[k] === "string" ? (raw[k] as string) : ""]),
-  ) as ComplaintInput;
-  input.issueType = cleanIssue(input.issueType);
+  const input = sanitise(raw && typeof raw === "object" ? raw : {});
+
 
   // 1. Obvious non-consumer matters get a clear "not covered" even if other fields are blank.
   if (input.description.trim()) {
@@ -57,7 +81,7 @@ export async function POST(req: Request) {
   if (result.status !== "covered") return NextResponse.json({ ...result, source, removedCitations });
 
   const { noticeBody, ...rest } = result;
-  const fallback = ISSUES.find((i) => i.id === input.issueType)?.fallbackIndustry ?? "other";
+  const fallback = getIssue(input.issueType)?.fallbackIndustry ?? "other";
   const industryId = industryFor(input.company, input.description, fallback);
   const industry = INDUSTRIES[industryId];
   return NextResponse.json({

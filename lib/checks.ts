@@ -8,7 +8,10 @@ export type ComplaintInput = {
   amount: string;
   incidentDate: string; // yyyy-mm-dd
   description: string;
-  issueType?: string; // refund | faulty | delivery | other (chosen on the first step)
+  issueType?: string; // refund | delivery | faulty | subscription | other (chosen on the first step)
+  resolution?: string; // refund | replacement | repair | other
+  resolutionOther?: string;
+  answers?: Record<string, string>; // answers to the questions that change with the problem
 };
 
 export function missingFields(input: ComplaintInput): string[] {

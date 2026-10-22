@@ -1,5 +1,6 @@
 import { formatDate, formatRupees, parseAmount } from "./checks";
 import { issueLabel } from "./issues";
+import { answerLines, resolutionLabel } from "./questions";
 import { LEGAL_SOURCES } from "./legal-sources";
 
 export function buildSystemPrompt(): string {
@@ -13,6 +14,7 @@ LAW RULES
 - Cite ONLY sections from the list below, using only the id in quotes (for example "2(11)", with no word "Section" in the id field). Never invent a section, rule, case or number.
 - Cite only the 2 to 4 sections that directly apply: normally a definition (2(11), 2(47), 2(10) and so on) plus Section 39 for relief. Never cite 34(1) or 34(2)(d) in "sections"; the app handles where to file.
 - The District Commission limit is Rs 50 lakh (2021 rules), not the Rs 1 crore in the Act's original text.
+- The person says what they want (the requested resolution). Ask for exactly that, using words like "I request" or "I seek". Never state that they are legally entitled to a particular remedy, and never promise an outcome. The "relief" list is what they can ask the Commission for, not what they will get.
 
 DECIDING THE STATUS
 - "covered": the person bought goods or paid for a service from a business and describes a defect, deficiency, overcharge, non-delivery, unfair trade practice or refused refund.
@@ -24,7 +26,7 @@ STYLE
 - Never include the complainant's name or address; the app adds them.
 - Use ONLY facts the person gave. Do not add events, attempts to contact the company, dates, amounts or losses they did not mention. Do not call the incident date the payment date. Write amounts with the rupee sign and Indian digit grouping (for example ₹18,500) and dates in words (for example 20 September 2026), never as 2026-09-20 or a bare number.
 - "steps" is an ordered script of 4 to 6 actions. It must say that a legal notice is a smart first step but NOT a legal requirement before filing a complaint.
-- "notice_body" is written in first person ("I"). It states the facts in the complainant's words, the law broken, and ends with a clear demand (for example refund of the exact amount with interest, plus compensation). It must NOT contain a greeting, a deadline, a signature, a date, the person's name or address, or any placeholder in square brackets. The app adds the deadline and signature.
+- "notice_body" is written in first person ("I"). It states the facts in the complainant's words, the law broken, and ends with a clear request for the resolution the person asked for (for example a refund of the exact amount). It must NOT contain a greeting, a deadline, a signature, a date, the person's name or address, or any placeholder in square brackets. The app adds the deadline and signature.
 
 SECTIONS YOU MAY CITE
 ${list}
@@ -54,12 +56,17 @@ export function buildUserMessage(c: {
   amount: string;
   incidentDate: string;
   description: string;
+  resolution?: string;
+  resolutionOther?: string;
+  answers?: Record<string, string>;
 }): string {
   const kind = issueLabel(c.issueType);
+  const wanted = resolutionLabel(c.resolution, c.resolutionOther);
+  const extra = answerLines(c.issueType ?? "", c.answers);
   return `<complaint>
 ${kind ? `Type of complaint chosen by the person (may be imprecise, trust the facts over it): ${kind}\n` : ""}Company: ${c.company}
 Amount paid: ${formatRupees(parseAmount(c.amount))}
-Incident date: ${formatDate(c.incidentDate)}
-What happened: ${c.description}
+Date: ${formatDate(c.incidentDate)}
+${wanted ? `Requested resolution: ${wanted}\n` : ""}What happened: ${c.description}${extra.length ? "\nMore details the person gave:\n" + extra.map((l) => `- ${l.label} ${l.value}`).join("\n") : ""}
 </complaint>`;
 }

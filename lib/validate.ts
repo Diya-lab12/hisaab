@@ -1,8 +1,10 @@
 import type { ComplaintInput } from "./checks";
 import { parseAmount } from "./checks";
 import { LIMITATION_YEARS } from "./config";
+import { getIssue } from "./issues";
+import type { Question } from "./questions";
 
-export type FieldKey = keyof ComplaintInput;
+export type FieldKey = "name" | "address" | "contact" | "company" | "amount" | "incidentDate" | "description" | "issueType" | "resolution" | "resolutionOther";
 export type FieldCheck = { error: string | null; note: string | null };
 
 const EMAIL = /^[^\s@?&#]+@[^\s@?&#]+\.[^\s@?&#]+$/;
@@ -16,10 +18,16 @@ export function isValidContact(s: string): boolean {
 /** Friendly, specific feedback for one field. `error` blocks progress; `note` is only advice. */
 export function checkField(key: FieldKey, input: ComplaintInput, now = new Date()): FieldCheck {
   const v = (input[key] ?? "").trim();
+  const issue = getIssue(input.issueType);
   const ok: FieldCheck = { error: null, note: null };
   switch (key) {
     case "issueType":
       return v ? ok : { error: "Pick the kind of complaint.", note: null };
+    case "resolution":
+      return v ? ok : { error: "Choose what you'd like the company to do.", note: null };
+    case "resolutionOther":
+      if (input.resolution !== "other") return ok;
+      return v ? ok : { error: "Say what you'd like instead.", note: null };
     case "company":
       if (!v) return { error: "Add the company's name, for example Swiggy.", note: null };
       return ok;
@@ -31,7 +39,7 @@ export function checkField(key: FieldKey, input: ComplaintInput, now = new Date(
       return ok;
     }
     case "incidentDate": {
-      if (!v) return { error: "Add the date it happened. An approximate date is fine.", note: null };
+      if (!v) return { error: `Add a date. ${issue?.dateHint ?? "An approximate date is fine."}`, note: null };
       const d = new Date(v + "T00:00:00");
       if (isNaN(d.getTime())) return { error: "That date doesn't look right.", note: null };
       if (d.getTime() > now.getTime() + 24 * 3600 * 1000) return { error: "That date is in the future.", note: null };
@@ -66,6 +74,20 @@ export function checkField(key: FieldKey, input: ComplaintInput, now = new Date(
 }
 
 export const STEP_FIELDS: Record<"complaint" | "details", FieldKey[]> = {
-  complaint: ["issueType", "company", "amount", "incidentDate", "description"],
+  complaint: ["issueType", "company", "amount", "incidentDate", "resolution", "resolutionOther", "description"],
   details: ["name", "address", "contact"],
 };
+
+/** Feedback for the answers to the questions that change with the problem. These never block progress, except impossible dates. */
+export function checkAnswer(q: Question, value: string, now = new Date()): { error: string | null } {
+  const v = value.trim();
+  if (!v) return { error: null };
+  if (v.length > 500) return { error: "Please keep this under 500 characters." };
+  if (q.type === "date") {
+    const d = new Date(v + "T00:00:00");
+    if (isNaN(d.getTime())) return { error: "That date doesn't look right." };
+    if (d.getTime() > now.getTime() + 24 * 3600 * 1000) return { error: "That date is in the future." };
+  }
+  if (q.type === "select" && !q.options?.some((o) => o.value === v)) return { error: "Pick one of the options." };
+  return { error: null };
+}

@@ -15,7 +15,7 @@ export function safeName(company: string): string {
   return "Legal-notice-" + (company.trim().replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "company");
 }
 
-export async function downloadPdf(text: string, filename: string) {
+export async function noticePdfBlob(text: string): Promise<Blob> {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   // The built-in PDF font has no rupee glyph, so write it as "Rs." in the PDF only.
@@ -37,7 +37,59 @@ export async function downloadPdf(text: string, filename: string) {
       y += lineH;
     }
   }
-  doc.save(filename + ".pdf");
+  return doc.output("blob");
+}
+
+export async function downloadPdf(text: string, filename: string) {
+  saveBlob(await noticePdfBlob(text), filename + ".pdf");
+}
+
+type Pic = { name: string; dataUrl: string; width: number; height: number };
+
+/** One PDF with every evidence picture on its own page, to attach to the email. */
+export async function evidencePdfBlob(images: Pic[], company: string): Promise<Blob> {
+  const { jsPDF } = await import("jspdf");
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const margin = 18;
+  const boxW = 210 - margin * 2;
+  const boxH = 297 - margin * 2 - 16;
+  images.forEach((img, i) => {
+    if (i > 0) doc.addPage();
+    doc.setFont("times", "bold");
+    doc.setFontSize(12);
+    doc.text(`Evidence ${i + 1} of ${images.length}: ${company.trim() || "complaint"}`.replace(/₹/g, "Rs. "), margin, margin);
+    doc.setFont("times", "normal");
+    doc.setFontSize(9.5);
+    doc.text(img.name.slice(0, 90), margin, margin + 6);
+    const ratio = Math.min(boxW / img.width, boxH / img.height);
+    const w = img.width * ratio;
+    const h = img.height * ratio;
+    doc.addImage(img.dataUrl, "JPEG", margin, margin + 12, w, h);
+  });
+  return doc.output("blob");
+}
+
+export async function downloadEvidencePdf(images: Pic[], company: string, filename: string) {
+  saveBlob(await evidencePdfBlob(images, company), filename + ".pdf");
+}
+
+/** Phones and some browsers can hand files straight to the email app through the share sheet. */
+export function canShareFiles(): boolean {
+  try {
+    if (typeof navigator === "undefined" || !navigator.canShare) return false;
+    return navigator.canShare({ files: [new File(["x"], "x.pdf", { type: "application/pdf" })] });
+  } catch {
+    return false;
+  }
+}
+
+export async function shareFiles(files: File[], title: string, text: string): Promise<boolean> {
+  try {
+    await navigator.share({ files, title, text });
+    return true;
+  } catch {
+    return false; // cancelled or blocked
+  }
 }
 
 export async function downloadDocx(text: string, filename: string) {

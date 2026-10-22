@@ -62,7 +62,6 @@ export async function POST(req: Request) {
     source,
     removedCitations,
     industry: { id: industryId, label: industry.label },
-    evidence: industry.evidence,
     tips: [...industry.tips, COMMON_TIP],
     filing: filingInfo(parseAmount(input.amount)),
     notice: assembleNotice(input, noticeBody, result.sections.map((s) => s.id)),

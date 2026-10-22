@@ -1,6 +1,20 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { downloadDocx, downloadPdf, looksLikeEmail, mailtoHref, safeName } from "@/lib/export";
+import EvidenceUploader from "./EvidenceUploader";
+import { useEvidence } from "@/lib/evidence";
+import { useHydrated } from "@/lib/session";
+import {
+  canShareFiles,
+  downloadDocx,
+  downloadEvidencePdf,
+  downloadPdf,
+  evidencePdfBlob,
+  looksLikeEmail,
+  mailtoHref,
+  noticePdfBlob,
+  safeName,
+  shareFiles,
+} from "@/lib/export";
 
 export default function NoticeTab({
   original,
@@ -15,8 +29,12 @@ export default function NoticeTab({
   const [email, setEmail] = useState("");
   const [copied, setCopied] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
-  const [busy, setBusy] = useState<"pdf" | "docx" | null>(null);
+  const [busy, setBusy] = useState<"pdf" | "docx" | "evidence" | "share" | null>(null);
   const area = useRef<HTMLTextAreaElement>(null);
+  const images = useEvidence();
+  const hydrated = useHydrated();
+  const hasEvidence = images.length > 0;
+  const shareable = hydrated && hasEvidence && canShareFiles();
   const edited = text !== original;
 
   // Grow the sheet to fit its text, so the page scrolls instead of the box.
@@ -69,6 +87,34 @@ export default function NoticeTab({
     setBusy(null);
   }
 
+  async function saveEvidence() {
+    setMsg(null);
+    setBusy("evidence");
+    try {
+      await downloadEvidencePdf(images, company, safeName(company).replace("Legal-notice", "Evidence-pack"));
+    } catch {
+      setMsg("Couldn't create the evidence pack. Try removing a large picture and adding it again.");
+    }
+    setBusy(null);
+  }
+
+  async function shareAll() {
+    setMsg(null);
+    setBusy("share");
+    try {
+      const base = safeName(company);
+      const files = [
+        new File([await noticePdfBlob(text)], base + ".pdf", { type: "application/pdf" }),
+        new File([await evidencePdfBlob(images, company)], base.replace("Legal-notice", "Evidence-pack") + ".pdf", { type: "application/pdf" }),
+      ];
+      const ok = await shareFiles(files, "Legal notice", "Legal notice and evidence");
+      if (!ok) setMsg("Sharing was cancelled or isn't available here. Use the download buttons and attach the files yourself.");
+    } catch {
+      setMsg("Couldn't prepare the files to share. Use the download buttons instead.");
+    }
+    setBusy(null);
+  }
+
   return (
     <div className="tab-body">
       <p className="fine">
@@ -98,6 +144,23 @@ export default function NoticeTab({
 
       <div className="send">
         <h2>Send it by email</h2>
+
+        <h3>1. Your evidence</h3>
+        {hasEvidence ? (
+          <p className="fine">{images.length} picture{images.length > 1 ? "s" : ""} ready. They stay in this browser tab only.</p>
+        ) : (
+          <p className="callout warn" role="status">
+            Add at least one picture of your evidence to unlock the email button. A notice with proof is much harder to ignore.
+          </p>
+        )}
+        <EvidenceUploader compact />
+        {hasEvidence && (
+          <button type="button" onClick={saveEvidence} disabled={busy !== null}>
+            {busy === "evidence" ? "Making evidence pack…" : "Download evidence pack (PDF)"}
+          </button>
+        )}
+
+        <h3>2. The company&apos;s email</h3>
         <label>
           Company&apos;s grievance email
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="grievance@company.com" />
@@ -105,13 +168,22 @@ export default function NoticeTab({
         <p className="fine">
           Find this on the company&apos;s website or app, under Contact, Terms or Grievance Officer. We don&apos;t guess it for you.
         </p>
-        {emailOk ? (
+
+        <h3>3. Send</h3>
+        {hasEvidence && emailOk ? (
           <a className="button primary" href={mailtoHref(email, text)}>Open in my email app</a>
         ) : (
           <button type="button" className="primary" disabled>Open in my email app</button>
         )}
+        {!hasEvidence && <p className="fine">Locked until you add a picture.</p>}
+        {hasEvidence && !emailOk && <p className="fine">Locked until you enter a valid company email.</p>}
+        {shareable && (
+          <button type="button" onClick={shareAll} disabled={busy !== null}>
+            {busy === "share" ? "Preparing…" : "Share notice + evidence (attaches both files)"}
+          </button>
+        )}
         <p className="fine">
-          This opens your email app with the notice filled in. You press send. If it doesn&apos;t open, use Copy.
+          Email links can&apos;t attach files by themselves. After your email app opens, attach the two PDFs you downloaded: your notice and the evidence pack, then press send.
           For proof, also post a printed copy by registered post with acknowledgement due.
         </p>
       </div>

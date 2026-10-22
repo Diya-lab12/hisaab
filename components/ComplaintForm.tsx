@@ -2,6 +2,8 @@
 import { useState } from "react";
 import type { ComplaintInput } from "@/lib/checks";
 import { missingFields } from "@/lib/checks";
+import { INDUSTRIES, detectIndustry } from "@/lib/categories";
+import EvidenceUploader from "./EvidenceUploader";
 
 export const EMPTY_INPUT: ComplaintInput = {
   name: "", address: "", contact: "", company: "", amount: "", incidentDate: "", description: "",
@@ -22,6 +24,9 @@ export default function ComplaintForm({
   const [errors, setErrors] = useState<string[]>([]);
   const set = (k: keyof ComplaintInput) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setV({ ...v, [k]: e.target.value });
+
+  // The suggested pictures follow what she types, using the same plain-code rules as the server.
+  const industry = INDUSTRIES[detectIndustry(v.company, v.description)];
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -57,6 +62,14 @@ export default function ComplaintForm({
           <textarea rows={5} value={v.description} onChange={set("description")}
             placeholder="Swiggy charged me ₹1,200 for an order that never arrived and refuses to refund." />
         </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Your evidence</legend>
+        <p className="fine">
+          Add pictures that back up your complaint. They are optional to check your case, but you need at least one to email your notice.
+        </p>
+        <EvidenceUploader suggestions={industry.evidence} suggestionsLabel={industry.label.toLowerCase()} />
       </fieldset>
 
       {errors.length > 0 && <p className="error" role="alert">Please fill in: {errors.join(", ")}.</p>}

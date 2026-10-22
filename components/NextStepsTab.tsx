@@ -7,33 +7,12 @@ import type { Result } from "@/lib/types";
 import { NOTICE_DEADLINE_DAYS } from "@/lib/config";
 
 export default function NextStepsTab({ input, r }: { input: ComplaintInput; r: Result }) {
-  const evidence = r.evidence ?? [];
-  const storeKey = `hisaab-checklist-${input.company}-${input.incidentDate}`;
-  // This tab only renders in the browser, so reading the date and saved ticks here is safe.
+  // This tab only renders in the browser, so reading today's date here is safe.
   const [sendDate, setSendDate] = useState(() => toIso(new Date()));
-  const [done, setDone] = useState<boolean[]>(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(storeKey) ?? "[]");
-      return evidence.map((_, i) => Boolean(saved[i]));
-    } catch {
-      return evidence.map(() => false);
-    }
-  });
-
-  function toggle(i: number) {
-    const next = evidence.map((_, k) => (k === i ? !done[k] : Boolean(done[k])));
-    setDone(next);
-    try {
-      localStorage.setItem(storeKey, JSON.stringify(next));
-    } catch {
-      /* the checklist still works for this visit */
-    }
-  }
 
   const due = sendDate ? replyDueIso(sendDate) : "";
   const limit = filingLimitIso(input.incidentDate);
   const daysToLimit = daysFromToday(limit);
-  const have = done.filter(Boolean).length;
 
   return (
     <div className="tab-body">
@@ -72,19 +51,6 @@ export default function NextStepsTab({ input, r }: { input: ComplaintInput; r: R
           ? "That date has passed. Under Section 69 the Commission can refuse a late complaint unless you show a good reason for the delay."
           : `Under Section 69 a complaint must normally be filed within two years of the incident. That is ${daysToLimit} days from today.`}
       </div>
-
-      <h2>Evidence to gather{r.industry ? ` (${r.industry.label.toLowerCase()})` : ""}</h2>
-      <p className="fine">{have} of {evidence.length} ready. Tick items as you collect them.</p>
-      <ul className="checklist">
-        {evidence.map((item, i) => (
-          <li key={i}>
-            <label>
-              <input type="checkbox" checked={Boolean(done[i])} onChange={() => toggle(i)} />
-              <span>{item}</span>
-            </label>
-          </li>
-        ))}
-      </ul>
 
       {!!r.tips?.length && (
         <>

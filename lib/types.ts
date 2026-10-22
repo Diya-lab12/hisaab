@@ -12,6 +12,5 @@ export type Result = {
   not_covered_reason?: string;
   alternatives?: string[];
   industry?: { id: string; label: string };
-  evidence?: string[];
   tips?: string[];
 };

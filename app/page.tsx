@@ -40,40 +40,28 @@ export default function Describe() {
 
   return (
     <main className="page describe">
-      <header className="brand">Hisaab</header>
-      <div className="split">
-        <section className="intro">
-          <h1>Shortchanged? Find out if the law is on your side.</h1>
-          <p className="lede">
-            Tell us what the company did. Hisaab checks it against the Consumer Protection Act, 2019,
-            explains what you can claim, and drafts your legal notice.
-          </p>
-          <ol className="steps">
-            <li><strong>Describe</strong> what happened and what you paid.</li>
-            <li><strong>See</strong> which sections apply and what to do next.</li>
-            <li><strong>Send</strong> your notice by email, or download it.</li>
-          </ol>
-        </section>
+      <header className="hero">
+        <h1 className="wordmark">Hisaab</h1>
+        <p className="tagline">Get your money back.</p>
+      </header>
 
-        <section className="work">
-          {/* Coming back from the case page keeps what she typed (the key remounts the form once it loads). */}
-          <ComplaintForm
-            key={saved ? "saved" : "new"}
-            initial={saved?.input ?? EMPTY_INPUT}
-            loading={loading}
-            onSubmit={check}
-            onInvalid={() => { setMore(null); setError(null); }}
-          />
-          {loading && <p className="status" aria-live="polite">Reading the Consumer Protection Act…</p>}
-          {error && <p className="error" role="alert">{error}</p>}
-          {more && (
-            <div className="callout warn" role="status">
-              <h2>We need a bit more information</h2>
-              <ul>{more.map((m, i) => <li key={i}>{m}</li>)}</ul>
-            </div>
-          )}
-        </section>
-      </div>
+      <section className="work">
+        <ComplaintForm
+          key={saved ? "saved" : "new"}
+          initial={saved?.input ?? EMPTY_INPUT}
+          loading={loading}
+          onSubmit={check}
+          onInvalid={() => { setMore(null); setError(null); }}
+        />
+        {loading && <p className="status" aria-live="polite">Reading the Consumer Protection Act…</p>}
+        {error && <p className="error" role="alert">{error}</p>}
+        {more && (
+          <div className="callout warn" role="status">
+            <h2>We need a bit more information</h2>
+            <ul>{more.map((m, i) => <li key={i}>{m}</li>)}</ul>
+          </div>
+        )}
+      </section>
       <p className="disclaimer">General legal information, not legal advice. Review your notice before sending it.</p>
     </main>
   );

@@ -15,30 +15,14 @@
   --focus: rgba(29, 79, 215, 0.28);
   --radius: 16px;
   --shadow: 0 1px 2px rgba(29, 32, 37, 0.06), 0 12px 32px -18px rgba(29, 32, 37, 0.35);
+  color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --page: #141518;
-    --surface: #1c1e22;
-    --ink: #f1eee8;
-    --muted: #a2a5ac;
-    --line: #30333a;
-    --cobalt: #7b9bff;
-    --cobalt-ink: #0a1230;
-    --cobalt-soft: #1b2440;
-    --amber: #f0b558;
-    --amber-bg: #2b2310;
-    --amber-line: #5b4619;
-    --danger: #ff8f86;
-    --ok: #5ccf8b;
-    --focus: rgba(123, 155, 255, 0.35);
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -18px rgba(0, 0, 0, 0.8);
-  }
-}
-
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   margin: 0;
   background: var(--page);
   color: var(--ink);
@@ -50,11 +34,11 @@ a { color: inherit; }
 h2:focus { outline: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-.page { max-width: 1120px; margin: 0 auto; padding: 28px 20px 56px; }
+.page { width: 100%; max-width: 1120px; margin: 0 auto; padding: 28px 20px 56px; flex: 1 0 auto; }
 .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: clamp(20px, 5vw, 48px); }
-.logo { display: inline-flex; align-items: center; gap: 9px; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.02em; text-decoration: none; }
+.logo { display: inline-flex; align-items: center; line-height: 0; text-decoration: none; }
+.logo img { height: 40px; width: auto; display: block; }
 .back { color: var(--muted); font-size: .95rem; }
-.disclaimer { margin: 40px auto 0; max-width: 720px; color: var(--muted); font-size: .85rem; text-align: center; }
 
 /* Buttons */
 button, .button { font: inherit; cursor: pointer; }
@@ -224,7 +208,7 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 
 /* ---- Site header ---- */
 .site-header { border-bottom: 1px solid var(--line); background: var(--page); position: sticky; top: 0; z-index: 20; }
-.site-header-in { max-width: 1120px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.site-header-in { max-width: 1120px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .site-header nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; }
 .site-header nav a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 8px; text-decoration: none; color: var(--muted); font-weight: 550; font-size: .95rem; transition: background .15s, color .15s; }
 .site-header nav a:hover { background: var(--cobalt-soft); color: var(--ink); }
@@ -250,7 +234,6 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .how li::before { content: counter(how); display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--cobalt); color: var(--cobalt-ink); font-size: .8rem; font-weight: 700; margin-bottom: 8px; }
 .how h3 { margin: 0 0 4px; font-size: 1.02rem; letter-spacing: -0.01em; }
 .how p { margin: 0; color: var(--muted); font-size: .94rem; max-width: 34ch; }
-.trust { margin: clamp(36px, 6vw, 56px) 0 0; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: .88rem; max-width: 62ch; }
 
 /* ---- Shared page bits ---- */
 .narrow-page { max-width: 760px; }
@@ -379,7 +362,14 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 
 @media (max-width: 560px) {
   .site-header { position: static; }
+  .logo img { height: 34px; }
   .site-header-in { padding: 8px 16px 4px; row-gap: 2px; }
   .site-header nav a { padding: 0 10px; min-height: 44px; }
   .page { padding: 20px 16px 48px; }
 }
+
+/* ---- Footer ---- */
+.site-footer { margin-top: 24px; border-top: 1px solid var(--line); }
+.site-footer-in { max-width: 1120px; margin: 0 auto; padding: 20px 20px 32px; }
+.site-footer p { margin: 0; max-width: 70ch; color: var(--muted); font-size: .88rem; line-height: 1.6; }
+@media (max-width: 560px) { .site-footer-in { padding: 18px 16px 28px; } }

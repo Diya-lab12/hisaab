@@ -37,10 +37,6 @@ export default function Home() {
           ))}
         </ol>
       </section>
-
-      <p className="trust">
-        Hisaab is an independent complaint assistance tool, not a law firm and not connected to the government. You review your complaint before sending it, and outcomes aren&apos;t guaranteed.
-      </p>
     </main>
   );
 }

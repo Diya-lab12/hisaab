@@ -34,7 +34,6 @@ export default function NewComplaint() {
       <Suspense fallback={<p className="status">Loading…</p>}>
         <Loader />
       </Suspense>
-      <p className="disclaimer">General legal information, not legal advice. You review your complaint before sending it.</p>
     </main>
   );
 }

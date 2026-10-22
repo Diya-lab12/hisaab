@@ -20,6 +20,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <SiteHeader />
         {children}
+        <footer className="site-footer">
+          <div className="site-footer-in">
+            <p>
+              Hisaab helps you organise and prepare your complaint. It&apos;s general information, not legal advice, and it isn&apos;t a law firm or connected to the government.
+              You review everything before you send it, and no outcome is guaranteed.
+            </p>
+          </div>
+        </footer>
       </body>
     </html>
   );

@@ -35,7 +35,6 @@ export default function CasePage() {
       <Suspense fallback={<p className="status">Loading your case…</p>}>
         <Loader />
       </Suspense>
-      <p className="disclaimer">General legal information, not legal advice. You review your complaint before sending it. Outcomes aren&apos;t guaranteed.</p>
     </main>
   );
 }

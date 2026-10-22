@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { analyze } from "@/lib/analyze";
 import { analyzeWithLLM } from "@/lib/llm";
-import { ComplaintInput, filingInfo, missingFields, parseAmount } from "@/lib/checks";
+import { ComplaintInput, filingInfo, invalidFields, missingFields, parseAmount } from "@/lib/checks";
 import { assembleNotice } from "@/lib/notice";
 
 const FIELDS = ["name", "address", "contact", "company", "amount", "incidentDate", "description"] as const;
@@ -20,6 +20,11 @@ export async function POST(req: Request) {
   const missing = missingFields(input);
   if (missing.length) {
     return NextResponse.json({ status: "need_more_info", missing: missing.map((m) => `Please provide ${m}.`) });
+  }
+
+  const invalid = invalidFields(input);
+  if (invalid.length) {
+    return NextResponse.json({ status: "need_more_info", missing: invalid.map((m) => `Please fix: ${m}.`) });
   }
 
   let result;

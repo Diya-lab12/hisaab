@@ -19,6 +19,8 @@ export async function analyzeWithLLM(input: ComplaintInput): Promise<Analysis> {
     body: JSON.stringify({
       model: process.env.OPENROUTER_MODEL || DEFAULT_MODEL,
       max_tokens: MAX_TOKENS,
+      temperature: 0.2,
+      response_format: { type: "json_object" },
       messages: [
         { role: "system", content: buildSystemPrompt() },
         { role: "user", content: buildUserMessage(input) },
@@ -30,11 +32,24 @@ export async function analyzeWithLLM(input: ComplaintInput): Promise<Analysis> {
 
   const data = await res.json();
   const text: string = data?.choices?.[0]?.message?.content ?? "";
-  const parsed = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start < 0 || end <= start) throw new Error("Model reply had no JSON object");
+  const raw = text.slice(start, end + 1);
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    // Lenient retry: drop trailing commas the model sometimes emits.
+    parsed = JSON.parse(raw.replace(/,\s*([}\]])/g, "$1"));
+  }
 
   // Section guard: drop any section not on the verified list.
   const sections = (Array.isArray(parsed.sections) ? parsed.sections : [])
-    .map((s: { id?: unknown; why?: unknown }) => ({ id: String(s?.id ?? ""), why: String(s?.why ?? "") }))
+    .map((s: { id?: unknown; why?: unknown }) => ({
+      id: String(s?.id ?? "").replace(/^\s*(section|sec\.?|s\.?)\s*/i, "").trim(),
+      why: String(s?.why ?? ""),
+    }))
     .filter((s: { id: string }) => {
       const ok = LEGAL_SECTION_IDS.has(s.id);
       if (!ok) console.warn("Section guard removed unlisted section:", s.id);
@@ -49,6 +64,10 @@ export async function analyzeWithLLM(input: ComplaintInput): Promise<Analysis> {
       not_covered_reason: typeof parsed.not_covered_reason === "string" ? parsed.not_covered_reason : "",
       alternatives: strArr(parsed.alternatives),
     };
+  }
+  // A notice with bracketed placeholders is unusable, so treat it as a failed AI answer.
+  if (parsed.status === "covered" && /\[[^\]]*\]/.test(noticeBody)) {
+    throw new Error("Model notice contained placeholders");
   }
   if (parsed.status === "covered" && sections.length && noticeBody.trim()) {
     return {

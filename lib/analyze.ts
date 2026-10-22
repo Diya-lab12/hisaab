@@ -98,7 +98,7 @@ const NOT_COVERED: { pattern: RegExp; reason: string; alternatives: string[] }[]
     alternatives: ["Contact the labour commissioner or the relevant labour court.", "Speak to an employment lawyer."],
   },
   {
-    pattern: /\b(divorce|custody|property dispute|inheritance|will\b|family|husband|wife|in-laws?)\b/,
+    pattern: /\b(divorce|custody|property dispute|inheritance|my will|family|husband|wife|in-laws?)\b/,
     reason: "Family and property disputes are decided by civil or family courts, not consumer commissions.",
     alternatives: ["Consult a family or property lawyer.", "Approach the family court or civil court, or your district legal services authority for free legal aid."],
   },
@@ -159,7 +159,7 @@ export function analyze(input: ComplaintInput): Analysis {
 
 ${c.breach}
 
-I therefore demand that you ${c.demand} within ${NOTICE_DEADLINE_DAYS} days of receiving this notice.`;
+I therefore demand that you ${c.demand}.`;
 
   return {
     status: "covered",

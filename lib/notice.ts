@@ -20,7 +20,7 @@ ${body.trim()}
 
 ${sections}
 
-If this is not resolved within ${NOTICE_DEADLINE_DAYS} days of receiving this notice, I will file a complaint before the appropriate Consumer Disputes Redressal Commission, and I will seek the amount, interest, compensation and costs.
+Please comply within ${NOTICE_DEADLINE_DAYS} days of receiving this notice. If this is not resolved by then, I will file a complaint before the appropriate Consumer Disputes Redressal Commission, and I will seek the amount, interest, compensation and costs.
 
 Yours faithfully,
 ${input.name.trim()}

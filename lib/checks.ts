@@ -26,6 +26,21 @@ export function missingFields(input: ComplaintInput): string[] {
   return missing;
 }
 
+export const MAX_LEN = { name: 100, address: 300, contact: 100, company: 100, amount: 15, incidentDate: 10, description: 2000 };
+
+/** Problems with values that are present but unusable. */
+export function invalidFields(input: ComplaintInput, now = new Date()): string[] {
+  const bad: string[] = [];
+  for (const k of Object.keys(MAX_LEN) as (keyof typeof MAX_LEN)[]) {
+    if (input[k].length > MAX_LEN[k]) bad.push(`${k} is too long (max ${MAX_LEN[k]} characters)`);
+  }
+  const d = new Date(input.incidentDate + "T00:00:00");
+  if (!isNaN(d.getTime()) && d.getTime() > now.getTime() + 24 * 3600 * 1000) bad.push("the incident date is in the future");
+  const amt = parseAmount(input.amount);
+  if (amt > 0 && amt > 1_000_000_000) bad.push("the amount looks too large");
+  return bad;
+}
+
 export function parseAmount(raw: string): number {
   return Number(raw.replace(/[₹,\s]/g, ""));
 }

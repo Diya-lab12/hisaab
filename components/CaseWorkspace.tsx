@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import EvidenceDialog from "./EvidenceDialog";
 import EvidenceSlots, { type EvidenceChange } from "./EvidenceSlots";
 import RealDecisions from "./RealDecisions";
 import {
@@ -12,7 +13,7 @@ import { formatRupees, parseAmount } from "@/lib/checks";
 import { NOTICE_DEADLINE_DAYS } from "@/lib/config";
 import { addDays, longDate, toIso } from "@/lib/deadlines";
 import { forScope, useAllEvidence } from "@/lib/evidence";
-import { evidenceFor, slotLabel } from "@/lib/evidenceItems";
+import { slotLabel } from "@/lib/evidenceItems";
 import {
   canShareFiles, downloadDocx, downloadEvidencePdf, downloadIcs, downloadPdf, evidencePdfBlob, looksLikeEmail,
   mailtoHref, noticePdfBlob, safeName, shareFiles,
@@ -35,6 +36,7 @@ export default function CaseWorkspace({ rec }: { rec: CaseRecord }) {
   const fu = rec.status === "resolved" ? null : followUpLabel(rec.followUpDate);
   const action = nextAction(rec, have);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [evOpen, setEvOpen] = useState(false);
   const result = rec.result;
   const amount = parseAmount(rec.input.amount);
   const wanted = resolutionLabel(rec.input.resolution, rec.input.resolutionOther);
@@ -76,12 +78,38 @@ export default function CaseWorkspace({ rec }: { rec: CaseRecord }) {
 
       <div className="ws">
         <div className="ws-main">
+          {result && (
+            <section className="ws-card verdict" aria-labelledby="verdict-h">
+              <h2 id="verdict-h">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M7.5 12.5l3 3 6-7" /></svg>
+                Yes, your case falls under the Consumer Protection Act, 2019
+              </h2>
+              {result.source === "rules" && (
+                <p className="callout warn">Answered with basic rules because the AI was unavailable. Treat this as a rough guide.</p>
+              )}
+              {!!result.removedCitations && (
+                <p className="callout warn">
+                  {result.removedCitations} legal citation{result.removedCitations > 1 ? "s were" : " was"} removed because {result.removedCitations > 1 ? "they are" : "it is"} not in our checked list.
+                </p>
+              )}
+              <h3>Why</h3>
+              <p className="lede">{result.explanation}</p>
+              <h3>The sections that apply</h3>
+              <ul className="plain">
+                {result.sections?.map((s) => <li key={s.id}><strong>Section {s.id}</strong> {s.why}</li>)}
+              </ul>
+              <p className="fine">Based only on what you wrote. This isn&apos;t a legal decision, so check these match your situation.</p>
+            </section>
+          )}
+
           <section className="ws-card next" aria-labelledby="next-h">
             <h2 id="next-h">Your next step</h2>
             <h3>{action.title}</h3>
             <p>{action.body}</p>
             {action.anchor === "continue" ? (
               <Link href={`/new?case=${rec.id}`} className="button primary">{action.anchorLabel}</Link>
+            ) : action.anchor === "evidence" ? (
+              <button type="button" className="button primary" onClick={() => setEvOpen(true)}>{action.anchorLabel}</button>
             ) : action.anchor ? (
               <a href={`#${action.anchor}`} className="button primary">{action.anchorLabel}</a>
             ) : null}
@@ -95,33 +123,12 @@ export default function CaseWorkspace({ rec }: { rec: CaseRecord }) {
             </section>
           ) : (
             <>
-              <section className="ws-card" id="evidence" aria-labelledby="ev-h">
-                <h2 id="ev-h">Evidence checklist</h2>
-                <p className="fine">
-                  {evidenceFor(rec.issue).filter((i) => have.has(i.id) || (rec.evidence[i.id]?.count ?? 0) > 0).length} of {evidenceFor(rec.issue).length} items have a picture. This is a checklist, not a rating of your case.
-                </p>
-                <EvidenceSlots issue={rec.issue} scope={rec.id} saved={rec.evidence} context={{ company: rec.input.company, amount: rec.input.amount }} onChange={onEvidence} />
-              </section>
-
-              <ComplaintSection rec={rec} pictureCount={pictures.length} onSent={() => setStatus("sent")} />
+              <ComplaintSection rec={rec} pictureCount={pictures.length} onSent={() => setStatus("sent")} onOpenEvidence={() => setEvOpen(true)} />
 
               <section className="ws-card" aria-labelledby="und-h">
-                <h2 id="und-h">Understanding your case</h2>
-                {result.source === "rules" && (
-                  <p className="callout warn">Answered with basic rules because the AI was unavailable. Treat this as a rough guide.</p>
-                )}
-                {!!result.removedCitations && (
-                  <p className="callout warn">
-                    {result.removedCitations} legal citation{result.removedCitations > 1 ? "s were" : " was"} removed because {result.removedCitations > 1 ? "they are" : "it is"} not in our checked list.
-                  </p>
-                )}
-                <p className="lede">{result.explanation}</p>
-                <h3>Sections that may apply</h3>
-                <p className="fine">Based only on what you wrote. Check these match your situation.</p>
-                <ul className="plain">
-                  {result.sections?.map((s) => <li key={s.id}><strong>Section {s.id}</strong> {s.why}</li>)}
-                </ul>
+                <h2 id="und-h">What you can ask for and where to file</h2>
                 <h3>What you can ask for</h3>
+                <p className="fine">These are things you can ask the Commission for. They are not promised.</p>
                 <ul>{result.relief?.map((x, i) => <li key={i}>{x}</li>)}</ul>
                 {result.filing && <><h3>Where a complaint is filed</h3><p>{result.filing.forum} {result.filing.fee}</p></>}
                 {!!result.tips?.length && (
@@ -188,6 +195,7 @@ export default function CaseWorkspace({ rec }: { rec: CaseRecord }) {
           <section className="ws-card" aria-labelledby="manage-h">
             <h2 id="manage-h">Manage this case</h2>
             <div className="stack">
+              {result && <button type="button" className="button small" onClick={() => setEvOpen(true)}>Manage evidence</button>}
               <Link href={`/new?case=${rec.id}`} className="button small">Edit details</Link>
               {confirmDelete ? (
                 <div>
@@ -202,6 +210,10 @@ export default function CaseWorkspace({ rec }: { rec: CaseRecord }) {
           </section>
         </aside>
       </div>
+
+      <EvidenceDialog open={evOpen} onClose={() => setEvOpen(false)}>
+        <EvidenceSlots issue={rec.issue} scope={rec.id} saved={rec.evidence} context={{ company: rec.input.company, amount: rec.input.amount }} onChange={onEvidence} />
+      </EvidenceDialog>
     </div>
   );
 }
@@ -290,7 +302,7 @@ function Recorder({ onRecord }: { onRecord: (kind: EventKind, text: string, at?:
   );
 }
 
-function ComplaintSection({ rec, pictureCount, onSent }: { rec: CaseRecord; pictureCount: number; onSent: () => void }) {
+function ComplaintSection({ rec, pictureCount, onSent, onOpenEvidence }: { rec: CaseRecord; pictureCount: number; onSent: () => void; onOpenEvidence: () => void }) {
   const original = rec.result?.notice ?? "";
   const [text, setText] = useState(rec.noticeText || original);
   const [email, setEmail] = useState("");
@@ -404,7 +416,14 @@ function ComplaintSection({ rec, pictureCount, onSent }: { rec: CaseRecord; pict
 
       <div className="send">
         <h3>Send it by email</h3>
-        {!hasEvidence && <p className="callout warn" role="status">Add at least one picture in the evidence checklist to unlock the email button.</p>}
+        {hasEvidence ? (
+          <p className="fine">{pictureCount} picture{pictureCount > 1 ? "s" : ""} of evidence added. <button type="button" className="link" onClick={onOpenEvidence}>Manage evidence</button></p>
+        ) : (
+          <div className="callout warn" role="status">
+            <p><strong>Evidence is required before you can email your complaint.</strong> Add at least one picture. You can still copy or download the complaint without it.</p>
+            <button type="button" className="button small primary" onClick={onOpenEvidence}>Add evidence</button>
+          </div>
+        )}
         <label htmlFor="co-email">Company&apos;s grievance email</label>
         <input id="co-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="grievance@company.com" />
         <p className="fine">Find it on the company&apos;s website or app, under Contact, Terms or Grievance Officer. We don&apos;t guess it for you.</p>
@@ -416,7 +435,7 @@ function ComplaintSection({ rec, pictureCount, onSent }: { rec: CaseRecord; pict
         ) : (
           <button type="button" className="primary" disabled>Open in my email app</button>
         )}
-        {!hasEvidence ? <p className="fine">Locked until you add a picture.</p> : !emailOk ? <p className="fine">Locked until you enter a valid company email.</p> : null}
+        {!hasEvidence ? <p className="fine">Locked until you add evidence.</p> : !emailOk ? <p className="fine">Locked until you enter a valid company email.</p> : null}
         {shareable && (
           <button type="button" onClick={share} disabled={busy !== null}>{busy === "share" ? "Preparing…" : "Share complaint + evidence"}</button>
         )}

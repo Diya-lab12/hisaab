@@ -34,9 +34,10 @@ Run in the app (`npm run dev`). Pictures live in the open tab only, so reloading
 ## Case workspace
 | # | Do this | Expect |
 |---|---|---|
-| 11 | Check my case (Swiggy ₹1,200 not delivered) | Workspace in under 20s, status "Ready for review", a next step, checklist, editable complaint, activity timeline |
+| 11 | Check my case (Swiggy ₹1,200 not delivered) | Workspace in under 20s, status "Ready for review". The first card says "Yes, your case falls under the Consumer Protection Act, 2019" with the reason and the sections. Then the next step, the editable complaint and the activity timeline. No full evidence checklist on the page |
+| 11b | Click "Add evidence" in the next step (or "Manage evidence") | A pop-up opens with the checklist. Add a picture inside it. Esc or Done closes it, and the page behind is unchanged |
 | 12 | Edit the complaint, wait a second, reload | Your edit is still there and the timeline says "You edited the complaint" |
-| 13 | Without pictures, look at the email button | Locked, with a reason. Add a picture and a valid company email to unlock |
+| 13 | Without pictures, look at the email section | "Evidence is required before you can email your complaint", with an "Add evidence" button; the email button is locked. Add a picture and a valid company email to unlock. Removing the last picture locks it again |
 | 14 | Open in my email app | Nothing changes status. A prompt asks "Did you send it?" and only "Yes, I sent it" records it |
 | 15 | Set a follow-up date; set one in the past | "Follow-up due in N days" / "overdue by N days". Resolved cases show neither |
 | 16 | Record a reply and a follow-up | Both appear in the timeline as recorded by you. Empty notes are refused |

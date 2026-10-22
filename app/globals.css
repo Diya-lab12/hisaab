@@ -427,3 +427,15 @@ h1, h2 { font-family: var(--font-display), var(--font-ui), system-ui, sans-serif
 @media (max-width: 520px) { .pic { grid-template-columns: 1fr; } .pic > img { width: 100%; height: 150px; } .pic-body { padding-right: 0; } }
 .pic > img { object-fit: contain; background: #fff; }
 .pic-body > .link { justify-self: start; text-align: left; }
+
+/* ---- Verdict card and the evidence pop-up ---- */
+.ws-card.verdict { border-left: 5px solid var(--primary); }
+.ws-card.verdict h2 { display: flex; gap: 10px; align-items: flex-start; font-size: 1.3rem; line-height: 1.25; color: var(--primary); }
+.ws-card.verdict h2 svg { flex: none; margin-top: 1px; }
+.ws-card.verdict h3 { margin: 14px 0 6px; font-size: .95rem; }
+.ws-card.verdict .lede { margin: 0 0 4px; font-size: 1.02rem; }
+dialog.modal { border: 0; padding: 0; width: min(760px, calc(100vw - 24px)); max-height: calc(100vh - 32px); border-radius: var(--radius); background: var(--page); color: var(--ink); box-shadow: 0 24px 80px -20px rgba(5, 59, 78, .55); }
+dialog.modal::backdrop { background: rgba(21, 29, 36, .55); }
+.modal-in { padding: clamp(16px, 3vw, 26px); overflow-y: auto; max-height: calc(100vh - 32px); }
+.modal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; position: sticky; top: calc(-1 * clamp(16px, 3vw, 26px)); background: var(--page); padding: 4px 0 10px; z-index: 2; }
+.modal-head h2 { margin: 0; font-size: 1.3rem; }

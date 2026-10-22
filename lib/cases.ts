@@ -277,7 +277,7 @@ export function nextAction(rec: CaseRecord, have: Set<string>, now = new Date())
       title: "Add the missing evidence",
       body: `Add ${missing[0].phrase} ${missing[0].purpose}. You can still read and edit your complaint first.`,
       anchor: "evidence",
-      anchorLabel: "Go to evidence",
+      anchorLabel: "Add evidence",
     };
   }
   return {

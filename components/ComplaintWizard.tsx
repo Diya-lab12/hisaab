@@ -135,7 +135,7 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
             status: rec && rec.status !== "draft" && rec.status !== "ready" ? rec.status : "ready",
             step: 3,
           },
-          [makeEvent(regenerated ? "regenerated" : "generated", regenerated ? "Complaint regenerated from your updated answers" : "Complaint drafted. You review and send it yourself")],
+          [makeEvent(regenerated ? "regenerated" : "generated", regenerated ? "Complaint regenerated from your updated answers" : "Notice drafted. An advocate reviews and signs it before it is sent")],
         );
         router.push(`/case?id=${saved.id}`);
       }

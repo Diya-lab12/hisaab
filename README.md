@@ -52,4 +52,9 @@ Tests: see `test-cases.md`.
 
 ## Advocate review
 
-The notice is drafted in an advocate's voice and marked as an unsigned draft. The client cannot send it to the company from the app: the app opens an email to the reviewing advocate (details in `lib/advocate.ts`), who reviews it, signs it, sends it to the company and copies the client. The app cannot see any of this, so the client records each step. There is no signature image in the code.
+The notice is drafted in an advocate's voice and marked as an unsigned draft. A client cannot send it to the company from the app. Instead they pick the advocate (details in `lib/advocate.ts`), tick a consent box and press send. The notice and an evidence pack are emailed straight to the advocate, and a record is kept so the client's status can update.
+
+The advocate signs in at `/advocate` (a passphrase), reviews each request, then approves it (optionally uploading the signed PDF), marks it sent to the company, or asks for changes. Each decision emails the client and updates the status in their Hisaab case. The advocate signs and sends the notice herself, outside the app. There is no signature image in the code.
+
+### Setting it up for real
+It needs three things in the hosting settings (see `.env.example`): an SMTP email account, a Redis database (Upstash), and `ADVOCATE_PASSPHRASE` plus `SESSION_SECRET`. Without them, sending says it isn't switched on yet and offers a manual email instead. On a developer's computer, emails are written to a local `.outbox` folder and requests to `.data`, so the whole flow can be tried safely.

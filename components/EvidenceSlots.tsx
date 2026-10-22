@@ -205,7 +205,7 @@ export default function EvidenceSlots({
           <rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
         </svg>
         <div>
-          <p><strong>Stays on this device.</strong> Pictures aren&apos;t uploaded or saved, and are cleared when you close the tab. Hisaab reads the text in them on your device. The only time a picture leaves is if you choose &ldquo;Check with AI&rdquo; for that one picture.</p>
+          <p><strong>Stays on this device.</strong> Pictures aren&apos;t uploaded or saved, and are cleared when you close the tab. Hisaab reads the text in them on your device. A picture leaves only if you choose &ldquo;Check with AI&rdquo; for it, or when you send your case to the advocate.</p>
           <details>
             <summary>What to hide first</summary>
             <ul>

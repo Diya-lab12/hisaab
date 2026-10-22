@@ -43,3 +43,7 @@ next-env.d.ts
 
 # OCR language data cache
 *.traineddata
+
+# Local dev fallbacks for the advocate flow (never commit)
+.outbox/
+.data/

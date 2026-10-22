@@ -27,10 +27,17 @@ Run in the app (`npm run dev`). Pictures live in the open tab only, so reloading
 | A2 | Return date a week ago, refund promised in "1 month" | A warning in the form and a "Too early to send a notice" card in the workspace with the date the company has until. The "Email the advocate" step is locked |
 | A3 | Click "The company has already refused in writing" | The card changes to "No waiting needed" and the email step unlocks (with evidence). The timeline records it as recorded by you |
 | A4 | Open the notice | "DRAFT FOR ADVOCATE REVIEW", "LEGAL NOTICE", the legal entity with the brand as its trade name, registered office and CIN, numbered paragraphs in the advocate's voice ("my client"), and the advocate's block marked as unsigned |
-| A5 | Look for a way to send it to the company | There is none. The only email goes to the advocate. Evidence is required for it |
-| A6 | Click "Email the advocate" | The email opens addressed to the advocate with the client, legal name, CIN, amount, date, evidence count and case reference. It does not change the status |
-| A7 | Click "I've emailed the advocate", then "The advocate sent it to the company" | Status becomes "With the advocate", then "Sent to the company", each recorded by you |
-| A8 | Faulty product or subscription case | No waiting-period check (we can't work one out), and the page says so |
+| A5 | Look for a way to send the notice to the company | There is none. The only option is the "Send to a lawyer for review" dropdown |
+| A6 | Open the dropdown | The advocate's name, Bar Council and enrolment number. Ticks for evidence and timing. Your email (prefilled if you gave one). A consent box. "Send" stays locked until evidence is added, the timing is fine, the email is valid and consent is ticked |
+| A7 | Send it (local test: emails go to `.outbox`) | The case becomes "With the advocate" with a reference. The advocate email has the client, company legal details, the full draft, and two PDFs. The client gets an acknowledgement |
+| A8 | Open `/advocate` and sign in | Wrong passphrase is refused. Signed in, the request is listed with all details |
+| A9 | "Ask for changes" with no note | Refused: a note is required |
+| A10 | Approve, with a signed PDF | The client is emailed with the PDF attached. Reopen their case: status is "Approved by the advocate", with the advocate's note, and the log shows it as not "recorded by you" |
+| A11 | "Mark as sent to the company" | Client emailed; their case shows it as sent |
+| A12 | Open someone else's status link, or call the list or decide routes while signed out | Refused (404 or 401) |
+| A13 | Production build with no email or storage configured | Send says it isn't switched on and offers downloads plus an email to the advocate. Nothing is stored. The case status is unchanged |
+| A14 | Faulty product or subscription case | No waiting-period check (we can't work one out), and the page says so |
+| A15 | Look at "What you can ask for and where to file", "If the company doesn't resolve it" and "Real decisions" | Each is a closed dropdown that opens on a click |
 
 ## Picture checks
 | # | Do this | Expect |

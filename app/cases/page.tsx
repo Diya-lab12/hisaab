@@ -57,7 +57,7 @@ export default function MyCases() {
     <main className="page narrow-page">
       <h1 className="page-h">My cases</h1>
       <p className="callout">
-        Cases are saved <strong>in this browser, on this device</strong>. They don&apos;t sync to your phone or other browsers, and clearing your browser data deletes them. Pictures are never saved, so add them again when you reopen a case.
+        Cases are saved <strong>in this browser, on this device</strong>. They don&apos;t sync to your phone or other browsers, and clearing your browser data deletes them. Pictures are never saved, so add them again when you reopen a case. If you send a case to the advocate, Hisaab also keeps your details and the notice on its server, so it can show your status.
       </p>
       {problem && (
         <p className="callout warn" role="alert">

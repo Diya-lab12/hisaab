@@ -47,7 +47,25 @@ export async function downloadPdf(text: string, filename: string) {
 type Pic = { name: string; dataUrl: string; width: number; height: number };
 
 /** One PDF with every evidence picture on its own page, to attach to the email. */
-export async function evidencePdfBlob(images: Pic[], company: string): Promise<Blob> {
+async function recompress(img: Pic, side: number, quality: number): Promise<Pic> {
+  const el = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const i = new Image();
+    i.onload = () => resolve(i);
+    i.onerror = () => reject(new Error("unreadable"));
+    i.src = img.dataUrl;
+  });
+  const scale = Math.min(1, side / Math.max(el.naturalWidth, el.naturalHeight));
+  const w = Math.max(1, Math.round(el.naturalWidth * scale));
+  const h = Math.max(1, Math.round(el.naturalHeight * scale));
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  c.getContext("2d")!.drawImage(el, 0, 0, w, h);
+  return { ...img, dataUrl: c.toDataURL("image/jpeg", quality), width: w, height: h };
+}
+
+export async function evidencePdfBlob(images: Pic[], company: string, shrink?: { side: number; quality: number }): Promise<Blob> {
+  if (shrink) images = await Promise.all(images.map((i) => recompress(i, shrink.side, shrink.quality)));
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const margin = 18;

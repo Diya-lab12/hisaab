@@ -10,12 +10,13 @@ import type { Result } from "./types";
 // sync across devices. "Session only" cases use sessionStorage and vanish when the tab closes.
 // Pictures are never saved here: only their counts and file names.
 
-export type CaseStatus = "draft" | "ready" | "review" | "sent" | "awaiting" | "resolved";
+export type CaseStatus = "draft" | "ready" | "review" | "approved" | "sent" | "awaiting" | "resolved";
 
 export const STATUS_LABEL: Record<CaseStatus, string> = {
   draft: "Draft",
   ready: "Ready for review",
-  review: "With the advocate — recorded by you",
+  review: "With the advocate",
+  approved: "Approved by the advocate",
   sent: "Sent to the company — recorded by you",
   awaiting: "Awaiting response — recorded by you",
   resolved: "Resolved — recorded by you",
@@ -52,6 +53,8 @@ export type CaseRecord = {
   step: number;
   /** True when the browser refused to store it, so it exists only in this tab. */
   unsaved?: boolean;
+  /** Set when the case was sent to the advocate through Hisaab. The token is the client's secret for checking status. */
+  submission?: { ref: string; token: string; email: string; sentAt: string; lastStatus: string; note?: string };
 };
 
 const LOCAL_KEY = "hisaab-cases-v1";
@@ -247,10 +250,20 @@ export function nextAction(rec: CaseRecord, have: Set<string>, now = new Date())
   }
   if (rec.status === "review") {
     return {
-      title: "Wait for the advocate",
-      body: "You've asked the advocate to review your notice. When the signed notice has been sent to the company, record that here. If you haven't heard back, you can email the advocate again.",
+      title: "Waiting for the advocate",
+      body: rec.submission
+        ? "Your notice is with the advocate. You'll get an email when they respond, and this page updates by itself."
+        : "You've asked the advocate to review your notice. When the signed notice has been sent to the company, record that here.",
       anchor: "record",
-      anchorLabel: "Record an update",
+      anchorLabel: rec.submission ? "Check for updates" : "Record an update",
+    };
+  }
+  if (rec.status === "approved") {
+    return {
+      title: "The advocate approved your notice",
+      body: "It has been signed. The advocate sends it to the company, and you'll see that here. Set a follow-up date for the company's reply: the notice asks for a response within 15 days.",
+      anchor: "followup",
+      anchorLabel: "Set follow-up date",
     };
   }
   if (rec.status === "awaiting" || rec.status === "sent") {

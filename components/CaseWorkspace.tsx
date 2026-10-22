@@ -100,7 +100,7 @@ export default function CaseWorkspace({ rec }: { rec: CaseRecord }) {
                 <p className="fine">
                   {evidenceFor(rec.issue).filter((i) => have.has(i.id) || (rec.evidence[i.id]?.count ?? 0) > 0).length} of {evidenceFor(rec.issue).length} items have a picture. This is a checklist, not a rating of your case.
                 </p>
-                <EvidenceSlots issue={rec.issue} scope={rec.id} saved={rec.evidence} onChange={onEvidence} />
+                <EvidenceSlots issue={rec.issue} scope={rec.id} saved={rec.evidence} context={{ company: rec.input.company, amount: rec.input.amount }} onChange={onEvidence} />
               </section>
 
               <ComplaintSection rec={rec} pictureCount={pictures.length} onSent={() => setStatus("sent")} />

@@ -400,3 +400,30 @@ h1, h2 { font-family: var(--font-display), var(--font-ui), system-ui, sans-serif
 .chip.added { color: var(--primary); }
 .drop:hover, .drop.over { color: var(--primary); }
 .situation .t, .issue .t, .ex-t, .cc-top h3, .how h3 { font-family: var(--font-display), var(--font-ui), system-ui, sans-serif; font-weight: 700; letter-spacing: -0.01em; }
+
+/* ---- Picture cards: what we read, and the opt-in AI look ---- */
+.pics { list-style: none; margin: 12px 0 0; padding: 0 !important; display: grid; gap: 12px !important; }
+.pic { position: relative; display: grid; grid-template-columns: 112px 1fr; gap: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--page); }
+.pic > img { width: 112px; height: 84px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); }
+.pic-x { position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; min-height: 0; padding: 0; border-radius: 50%; border: 0; background: rgba(29, 32, 37, 0.78); color: #fff; font-size: 1.05rem; line-height: 1; display: grid; place-items: center; }
+.pic-x:hover { background: #000; }
+.pic-body { min-width: 0; padding-right: 22px; display: grid; gap: 6px; align-content: start; }
+.pic-body .cap { font-size: .78rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pic-line { margin: 0; font-size: .9rem; }
+.pic-result.mismatch, .pic-result.weak, .pic-result.unreadable { padding: 8px 10px; border-radius: 8px; background: var(--amber-bg); border: 1px solid var(--amber-line); }
+.pic-found { margin-top: 4px; font-size: .88rem; }
+.pic-found summary { cursor: pointer; color: var(--primary); font-weight: 600; }
+.pic-found ul { margin: 6px 0 4px; padding-left: 1.2em; display: grid; gap: 2px; }
+.pic-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+.chip.match { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
+.chip.weak, .chip.mismatch, .chip.unreadable { background: var(--amber-bg); border-color: var(--amber-line); color: var(--amber); }
+.chip.photo { color: var(--muted); }
+.pic-ai { padding: 8px 10px; border-radius: 8px; background: var(--primary-soft); font-size: .9rem; }
+.pic-ai p { margin: 0 0 4px; }
+.pic-ai.no { background: var(--amber-bg); }
+.ai-confirm { padding: 12px; border-radius: 10px; border: 1.5px solid var(--secondary); background: var(--secondary-soft); font-size: .88rem; }
+.ai-confirm p { margin: 0 0 6px; }
+.spin.small { display: inline-block; width: 14px; height: 14px; border-width: 2px; vertical-align: -2px; }
+@media (max-width: 520px) { .pic { grid-template-columns: 1fr; } .pic > img { width: 100%; height: 150px; } .pic-body { padding-right: 0; } }
+.pic > img { object-fit: contain; background: #fff; }
+.pic-body > .link { justify-self: start; text-align: left; }

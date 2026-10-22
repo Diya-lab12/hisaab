@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import type { PictureCheck } from "./pictureCheck";
 
 // Evidence pictures live ONLY in this browser tab's memory. They are never uploaded, never
 // written to localStorage or sessionStorage, and never sent to the AI. Reloading or closing the
@@ -14,6 +15,12 @@ export type EvidenceImage = {
   scope: string;
   /** Which checklist item it supports. */
   slot: string;
+  /** What the on-device text reader found. Never leaves the browser. */
+  review?: { state: "reading" } | { state: "done"; check: PictureCheck } | { state: "failed" };
+  /** The person chose to keep it after a warning. */
+  kept?: boolean;
+  /** An optional AI look, only if the person asked for it for this picture. */
+  ai?: { state: "asking" } | { state: "done"; description: string; matches: "yes" | "no" | "unsure"; reason: string } | { state: "failed"; message: string };
 };
 
 export const MAX_PER_SCOPE = 12;
@@ -61,6 +68,10 @@ export function summarise(scope: string): Record<string, { count: number; names:
     e.names.push(img.name);
   }
   return out;
+}
+
+export function updateEvidence(id: string, patch: Partial<EvidenceImage>) {
+  emit(items.map((i) => (i.id === id ? { ...i, ...patch } : i)));
 }
 
 export function removeEvidence(id: string) {
@@ -115,8 +126,8 @@ async function cleanImage(file: File, scope: string, slot: string): Promise<Evid
   }
 }
 
-/** Adds pictures and returns plain-language problems, if any. */
-export async function addEvidence(files: File[], scope: string, slot: string): Promise<string[]> {
+/** Adds pictures. Returns plain-language problems, if any, and the pictures that were added. */
+export async function addEvidence(files: File[], scope: string, slot: string): Promise<{ problems: string[]; added: EvidenceImage[] }> {
   const problems: string[] = [];
   const added: EvidenceImage[] = [];
   for (const file of files) {
@@ -145,5 +156,5 @@ export async function addEvidence(files: File[], scope: string, slot: string): P
     }
   }
   if (added.length) emit([...items, ...added]);
-  return problems;
+  return { problems, added };
 }

@@ -3,7 +3,7 @@ import { SituationLinks } from "@/components/SituationCards";
 
 const HELPS = [
   { t: "Understand the issue", d: "Describe what happened and we check it against the Consumer Protection Act, 2019, in plain words." },
-  { t: "Build your case", d: "A checklist shows which documents help for your kind of problem. Pictures stay on your device." },
+  { t: "Build your case", d: "A checklist shows which documents help for your kind of problem. Pictures stay on your device, and Hisaab reads the text in them to check they fit." },
   { t: "Prepare your complaint", d: "We draft a complaint you can edit, copy, or download as a PDF or Word file." },
   { t: "Keep track of what happens next", d: "Record when you sent it, what the company replied, and set a follow-up date. Saved on this device." },
 ];

@@ -300,7 +300,7 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
                 >
                   {(b) => <textarea {...b} {...text("description")} rows={5} placeholder={issue.example} />}
                 </Field>
-                <p className="fine">What you write here and in the answers above is sent to an AI to check your case. Your name, address, contact details and pictures are not.</p>
+                <p className="fine">What you write here and in the answers above is sent to an AI to check your case. Your name, address, contact details and pictures are not. (A picture is sent only if you choose &ldquo;Check with AI&rdquo; for it.)</p>
               </>
             )}
           </>
@@ -312,7 +312,7 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
             <p className="help">
               Add a picture for each item you have. You can check your case without them, but the email button unlocks only once you&apos;ve added at least one.
             </p>
-            <EvidenceSlots issue={v.issueType ?? "other"} scope={scope} saved={rec?.evidence} />
+            <EvidenceSlots issue={v.issueType ?? "other"} scope={scope} saved={rec?.evidence} context={{ company: v.company, amount: v.amount }} />
           </>
         )}
 

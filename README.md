@@ -1,6 +1,6 @@
 # Hisaab
 
-Describe what a company did wrong. Hisaab tells you whether the Consumer Protection Act, 2019 covers it, explains what you can claim, and drafts a legal notice you can edit, copy, download (PDF or Word) or open in your email app. It also tracks the 15-day deadline, and suggests which evidence pictures to add for your kind of complaint. Pictures stay in the browser tab (never uploaded or sent to the AI), and the email button stays locked until at least one is added.
+Describe what a company did wrong. Hisaab tells you whether the Consumer Protection Act, 2019 covers it, explains what you can claim, and drafts a legal notice you can edit, copy, download (PDF or Word) or open in your email app. It also tracks the 15-day deadline, and suggests which evidence pictures to add for your kind of complaint. Pictures stay in the browser tab. Hisaab reads the text in each one on the device to check it fits the checklist item (warning, never blocking), and a picture goes to the AI only if you choose "Check with AI" for that one picture. The email button stays locked until at least one is added.
 
 Pages: **Home** (situation cards), **Example cases** (three clearly labelled, fictional walkthroughs), a 4-step **guided flow** that adapts to the problem (the problem, evidence, your details, review), **My cases** (cases saved in this browser), and a **case workspace** (evidence checklist, editable complaint, activity timeline, next step, and notes you record yourself such as sent, replies and a follow-up date).
 
@@ -29,6 +29,7 @@ Without a key the app still works using built-in keyword rules (`lib/analyze.ts`
 | Page 2: case, notice, next steps | `app/case/page.tsx`, `components/CaseTab.tsx`, `NoticeTab.tsx`, `NextStepsTab.tsx` |
 | Industry advice and evidence suggestions | `lib/categories.ts` |
 | Evidence checklist and pictures (in-browser only) | `lib/evidenceItems.ts`, `lib/evidence.ts`, `components/EvidenceSlots.tsx` |
+| Picture checks: on-device reading, rules, opt-in AI | `lib/ocr.ts`, `lib/pictureCheck.ts`, `lib/pictureReview.ts`, `app/api/describe/route.ts` |
 | Deadlines, calendar reminder, PDF/Word/email helpers | `lib/deadlines.ts`, `lib/export.ts` |
 | Server route (key stays server-side) | `app/api/analyze/route.ts` |
 | AI call via OpenRouter | `lib/llm.ts`, `lib/prompt.ts` |

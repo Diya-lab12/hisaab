@@ -151,3 +151,14 @@ export function mailtoHref(to: string, text: string): string {
 export function looksLikeEmail(s: string): boolean {
   return /^[^\s@?&#]+@[^\s@?&#]+\.[^\s@?&#]+$/.test(s.trim());
 }
+
+/**
+ * An email to the advocate asking for review. The full draft goes as an attached PDF, because long
+ * text doesn't fit in an email link. The draft text is included only when it is short enough.
+ */
+export function advocateMailto(to: string, v: { subject: string; summary: string; draft: string }): string {
+  const base = `${v.summary}\n\nAttached: the draft notice (PDF) and the evidence pack (PDF).`;
+  const withDraft = `${base}\n\n---- Draft ----\n${v.draft}`;
+  const body = encodeURIComponent(withDraft).length <= 1800 ? withDraft : `${base}\n\n(The full draft is in the attached PDF.)`;
+  return `mailto:${to}?subject=${encodeURIComponent(v.subject)}&body=${encodeURIComponent(body)}`;
+}

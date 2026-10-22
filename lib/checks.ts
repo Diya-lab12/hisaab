@@ -12,6 +12,11 @@ export type ComplaintInput = {
   resolution?: string; // refund | replacement | repair | other
   resolutionOther?: string;
   answers?: Record<string, string>; // answers to the questions that change with the problem
+  // Who exactly is being complained about. The brand name is `company`; these are the legal details.
+  legalName?: string;
+  companyAddress?: string; // registered office
+  companyCin?: string;
+  companyEmail?: string;
 };
 
 export function missingFields(input: ComplaintInput): string[] {
@@ -26,13 +31,13 @@ export function missingFields(input: ComplaintInput): string[] {
   return missing;
 }
 
-export const MAX_LEN = { name: 100, address: 300, contact: 100, company: 100, amount: 15, incidentDate: 10, description: 2000 };
+export const MAX_LEN = { name: 100, address: 300, contact: 100, company: 100, amount: 15, incidentDate: 10, description: 2000, legalName: 160, companyAddress: 300, companyCin: 30, companyEmail: 120 };
 
 /** Problems with values that are present but unusable. */
 export function invalidFields(input: ComplaintInput, now = new Date()): string[] {
   const bad: string[] = [];
   for (const k of Object.keys(MAX_LEN) as (keyof typeof MAX_LEN)[]) {
-    if (input[k].length > MAX_LEN[k]) bad.push(`${k} is too long (max ${MAX_LEN[k]} characters)`);
+    if ((input[k] ?? "").length > MAX_LEN[k]) bad.push(`${k} is too long (max ${MAX_LEN[k]} characters)`);
   }
   const d = new Date(input.incidentDate + "T00:00:00");
   if (!isNaN(d.getTime()) && d.getTime() > now.getTime() + 24 * 3600 * 1000) bad.push("the incident date is in the future");

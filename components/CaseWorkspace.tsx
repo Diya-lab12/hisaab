@@ -15,15 +15,17 @@ import { addDays, longDate, toIso } from "@/lib/deadlines";
 import { forScope, useAllEvidence } from "@/lib/evidence";
 import { slotLabel } from "@/lib/evidenceItems";
 import {
-  canShareFiles, downloadDocx, downloadEvidencePdf, downloadIcs, downloadPdf, evidencePdfBlob, looksLikeEmail,
-  mailtoHref, noticePdfBlob, safeName, shareFiles,
+  advocateMailto, canShareFiles, downloadDocx, downloadEvidencePdf, downloadIcs, downloadPdf, evidencePdfBlob,
+  noticePdfBlob, safeName, shareFiles,
 } from "@/lib/export";
 import { ROUTES, SECTOR } from "@/lib/escalation";
+import { ADVOCATE } from "@/lib/advocate";
+import { timingCheck, type Timing } from "@/lib/timing";
 import { useHydrated } from "@/lib/hydrated";
 import { getIssue } from "@/lib/issues";
 import { resolutionLabel } from "@/lib/questions";
 
-const STATUSES: CaseStatus[] = ["draft", "ready", "sent", "awaiting", "resolved"];
+const STATUSES: CaseStatus[] = ["draft", "ready", "review", "sent", "awaiting", "resolved"];
 const todayIso = () => toIso(new Date());
 const stamp = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -102,6 +104,8 @@ export default function CaseWorkspace({ rec }: { rec: CaseRecord }) {
             </section>
           )}
 
+          {result && rec.status !== "resolved" && <TimingCard rec={rec} />}
+
           <section className="ws-card next" aria-labelledby="next-h">
             <h2 id="next-h">Your next step</h2>
             <h3>{action.title}</h3>
@@ -123,7 +127,7 @@ export default function CaseWorkspace({ rec }: { rec: CaseRecord }) {
             </section>
           ) : (
             <>
-              <ComplaintSection rec={rec} pictureCount={pictures.length} onSent={() => setStatus("sent")} onOpenEvidence={() => setEvOpen(true)} />
+              <ComplaintSection rec={rec} pictureCount={pictures.length} onAskedAdvocate={() => setStatus("review")} onSetStatus={setStatus} onOpenEvidence={() => setEvOpen(true)} />
 
               <section className="ws-card" aria-labelledby="und-h">
                 <h2 id="und-h">What you can ask for and where to file</h2>
@@ -171,7 +175,7 @@ export default function CaseWorkspace({ rec }: { rec: CaseRecord }) {
         <aside className="ws-side">
           <section className="ws-card" id="record" aria-labelledby="rec-h">
             <h2 id="rec-h">Track what happens</h2>
-            <p className="fine">Hisaab can&apos;t see whether you sent your complaint or whether the company replied. What you record here is your own note.</p>
+            <p className="fine">Hisaab can&apos;t see whether the advocate has sent your notice or whether the company replied. What you record here is your own note.</p>
             <label className="side-label" htmlFor="status">Status</label>
             <select id="status" value={rec.status} onChange={(e) => setStatus(e.target.value as CaseStatus)}>
               {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
@@ -302,23 +306,24 @@ function Recorder({ onRecord }: { onRecord: (kind: EventKind, text: string, at?:
   );
 }
 
-function ComplaintSection({ rec, pictureCount, onSent, onOpenEvidence }: { rec: CaseRecord; pictureCount: number; onSent: () => void; onOpenEvidence: () => void }) {
+function ComplaintSection({ rec, pictureCount, onAskedAdvocate, onSetStatus, onOpenEvidence }: { rec: CaseRecord; pictureCount: number; onAskedAdvocate: () => void; onSetStatus: (s: CaseStatus) => void; onOpenEvidence: () => void }) {
   const original = rec.result?.notice ?? "";
   const [text, setText] = useState(rec.noticeText || original);
-  const [email, setEmail] = useState("");
   const [copied, setCopied] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState<"pdf" | "docx" | "pack" | "share" | null>(null);
-  const [opened, setOpened] = useState(false);
   const area = useRef<HTMLTextAreaElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hydrated = useHydrated();
   const all = useAllEvidence();
   const mine = useMemo(() => forScope(all, rec.id), [all, rec.id]);
   const edited = text !== original;
-  const emailOk = looksLikeEmail(email);
+  const timing = timingCheck(rec.input);
+  const early = timing.state === "too_early";
   const hasEvidence = pictureCount > 0;
   const shareable = hydrated && hasEvidence && canShareFiles();
+  const canAsk = hasEvidence && !early;
+  const asked = rec.status === "review" || rec.status === "sent" || rec.status === "awaiting" || rec.status === "resolved";
 
   useEffect(() => {
     const el = area.current;
@@ -398,9 +403,10 @@ function ComplaintSection({ rec, pictureCount, onSent, onOpenEvidence }: { rec: 
 
   return (
     <section className="ws-card" id="complaint" aria-labelledby="comp-h">
-      <h2 id="comp-h">Your complaint</h2>
+      <h2 id="comp-h">Your legal notice (draft)</h2>
+      <p className="draft-banner">Draft for advocate review. It isn&apos;t signed and hasn&apos;t been sent.</p>
       <p className="fine">
-        {rec.result?.source === "rules" ? "Draft built from a basic template." : "Draft written by AI from what you told us."} Read it, fix anything that isn&apos;t true, and edit it right here. Changes save automatically on this device.
+        {rec.result?.source === "rules" ? "Built from a basic template." : "Written by AI from what you told us."} Read it, fix anything that isn&apos;t true, and edit it right here. Changes save automatically on this device. The advocate checks it again before signing.
       </p>
       <div className="toolbar" role="group" aria-label="Complaint actions">
         <button type="button" onClick={copy}>{copied ? "Copied!" : "Copy"}</button>
@@ -415,40 +421,165 @@ function ComplaintSection({ rec, pictureCount, onSent, onOpenEvidence }: { rec: 
       </div>
 
       <div className="send">
-        <h3>Send it by email</h3>
-        {hasEvidence ? (
-          <p className="fine">{pictureCount} picture{pictureCount > 1 ? "s" : ""} of evidence added. <button type="button" className="link" onClick={onOpenEvidence}>Manage evidence</button></p>
-        ) : (
-          <div className="callout warn" role="status">
-            <p><strong>Evidence is required before you can email your complaint.</strong> Add at least one picture. You can still copy or download the complaint without it.</p>
-            <button type="button" className="button small primary" onClick={onOpenEvidence}>Add evidence</button>
-          </div>
-        )}
-        <label htmlFor="co-email">Company&apos;s grievance email</label>
-        <input id="co-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="grievance@company.com" />
-        <p className="fine">Find it on the company&apos;s website or app, under Contact, Terms or Grievance Officer. We don&apos;t guess it for you.</p>
-        {hasEvidence && (
-          <button type="button" onClick={() => make("pack")} disabled={busy !== null}>{busy === "pack" ? "Making evidence pack…" : "Download evidence pack (PDF)"}</button>
-        )}
-        {hasEvidence && emailOk ? (
-          <a className="button primary" href={mailtoHref(email, text)} onClick={() => setOpened(true)}>Open in my email app</a>
-        ) : (
-          <button type="button" className="primary" disabled>Open in my email app</button>
-        )}
-        {!hasEvidence ? <p className="fine">Locked until you add evidence.</p> : !emailOk ? <p className="fine">Locked until you enter a valid company email.</p> : null}
-        {shareable && (
-          <button type="button" onClick={share} disabled={busy !== null}>{busy === "share" ? "Preparing…" : "Share complaint + evidence"}</button>
-        )}
-        <p className="fine">
-          Email links can&apos;t attach files. After your email app opens, attach the PDFs you downloaded, then press send. For proof, you can also post a printed copy by registered post with acknowledgement due.
+        <h3>Get it reviewed and sent by an advocate</h3>
+        <p>
+          You can&apos;t send this notice to the company from Hisaab. It goes to <strong>{ADVOCATE.name}, Advocate</strong> ({ADVOCATE.council}, Enrolment No. {ADVOCATE.enrolment}). The advocate reviews it, signs it, sends it to the company and copies you. Hisaab can&apos;t see any of that, so you record each step below.
         </p>
-        {opened && rec.status !== "sent" && rec.status !== "awaiting" && rec.status !== "resolved" && (
-          <div className="callout" role="status">
-            <p><strong>Did you send it?</strong> Hisaab can&apos;t tell. If you pressed send, record it so your case stays accurate.</p>
-            <button type="button" className="button small primary" onClick={onSent}>Yes, I sent it</button>
-          </div>
-        )}
+        <ol className="steps-box">
+          <li className={hasEvidence ? "" : "locked"}>
+            <h4>Add your evidence</h4>
+            {hasEvidence ? (
+              <p>{pictureCount} picture{pictureCount > 1 ? "s" : ""} added. <button type="button" className="link" onClick={onOpenEvidence}>Manage evidence</button></p>
+            ) : (
+              <>
+                <p><strong>Evidence is required</strong> before you can ask the advocate to review. Add at least one picture. You can still copy or download the draft without it.</p>
+                <button type="button" className="button small primary" onClick={onOpenEvidence}>Add evidence</button>
+              </>
+            )}
+          </li>
+          <li className={early ? "locked" : ""}>
+            <h4>Check the timing</h4>
+            {early && timing.dueIso ? (
+              <p>It&apos;s too early. By the company&apos;s own timeline it has until {longDate(timing.dueIso)}. Come back after that, or record that the company has already refused in writing (see the timing card at the top).</p>
+            ) : timing.state === "ready" ? (
+              <p>The company&apos;s time to refund has passed, so a notice is reasonable.</p>
+            ) : timing.state === "refused" ? (
+              <p>You recorded that the company has already refused, so there&apos;s no period to wait for.</p>
+            ) : (
+              <p>We couldn&apos;t work out a waiting period for this kind of problem. The advocate will check it.</p>
+            )}
+          </li>
+          <li className={hasEvidence ? "" : "locked"}>
+            <h4>Download your draft and evidence pack</h4>
+            <p>You&apos;ll attach both to your email.</p>
+            <div className="stack-row">
+              <button type="button" onClick={() => make("pdf")} disabled={busy !== null || !hasEvidence}>{busy === "pdf" ? "Making PDF…" : "Download draft (PDF)"}</button>
+              <button type="button" onClick={() => make("pack")} disabled={busy !== null || !hasEvidence}>{busy === "pack" ? "Making evidence pack…" : "Download evidence pack (PDF)"}</button>
+            </div>
+          </li>
+          <li className={canAsk ? "" : "locked"}>
+            <h4>Email the advocate</h4>
+            <p>This opens your email app with the details filled in. It includes your name, address and contact details so the advocate can act for you. Attach the two PDFs, then press send.</p>
+            {canAsk ? (
+              <a
+                className="button primary"
+                href={advocateMailto(ADVOCATE.reviewEmail, {
+                  subject: `Hisaab review request: ${rec.input.company} (₹${Number(rec.input.amount.replace(/[₹,\s]/g, "")).toLocaleString("en-IN")})`,
+                  summary: reviewSummary(rec, pictureCount),
+                  draft: text,
+                })}
+              >
+                Email the advocate
+              </a>
+            ) : (
+              <button type="button" className="primary" disabled>Email the advocate</button>
+            )}
+            {!canAsk && <p className="fine">{!hasEvidence ? "Locked until you add evidence." : "Locked until the company's time has passed, or it has refused in writing."}</p>}
+            {shareable && canAsk && (
+              <button type="button" onClick={share} disabled={busy !== null}>{busy === "share" ? "Preparing…" : "Share draft + evidence instead"}</button>
+            )}
+          </li>
+          <li className={asked ? "" : "locked"}>
+            <h4>Record what happens</h4>
+            {rec.status === "review" ? (
+              <>
+                <p>You&apos;ve recorded that the advocate has it. When the signed notice has gone to the company, record it.</p>
+                <button type="button" className="button small primary" onClick={() => onSetStatus("sent")}>The advocate sent it to the company</button>
+              </>
+            ) : asked ? (
+              <p>Recorded: {STATUS_LABEL[rec.status].toLowerCase()}.</p>
+            ) : (
+              <>
+                <p>After you&apos;ve emailed the advocate, record it here. Hisaab can&apos;t tell on its own.</p>
+                <button type="button" className="button small" onClick={onAskedAdvocate} disabled={!canAsk}>I&apos;ve emailed the advocate</button>
+              </>
+            )}
+          </li>
+        </ol>
       </div>
     </section>
   );
+}
+
+function reviewSummary(rec: CaseRecord, pictureCount: number): string {
+  const i = rec.input;
+  const amt = parseAmount(i.amount);
+  const lines = [
+    "Please review, sign and send the attached draft legal notice.",
+    "",
+    `Client: ${i.name}`,
+    `Contact: ${i.contact}`,
+    `Client address: ${i.address}`,
+    "",
+    `Company (brand or trade name): ${i.company}`,
+    `Company legal name: ${i.legalName?.trim() || "not provided"}`,
+    `Registered office: ${i.companyAddress?.trim() || "not provided"}`,
+    ...(i.companyCin?.trim() ? [`CIN: ${i.companyCin.trim()}`] : []),
+    ...(i.companyEmail?.trim() ? [`Company email: ${i.companyEmail.trim()}`] : []),
+    "",
+    `Amount: ${amt > 0 ? formatRupees(amt) : i.amount}`,
+    `Relevant date: ${i.incidentDate}`,
+    `Client would like: ${resolutionLabel(i.resolution, i.resolutionOther) || "not stated"}`,
+    `Evidence: ${pictureCount} picture${pictureCount === 1 ? "" : "s"} (evidence pack attached)`,
+    `Hisaab case reference: ${rec.id}`,
+  ];
+  return lines.join("\n");
+}
+
+/** Whether it's too early to send a notice, and the last day to file. Advice only: it never decides the law. */
+function TimingCard({ rec }: { rec: CaseRecord }) {
+  const t: Timing = timingCheck(rec.input);
+  const earlyOk = ["draft", "ready", "review"].includes(rec.status);
+  function refused() {
+    mutateCase(rec.id, (r) => ({
+      patch: { input: { ...r.input, answers: { ...(r.input.answers ?? {}), refusedInWriting: "yes" } } },
+      events: [makeEvent("date", "Recorded: the company has already refused in writing", true)],
+    }));
+  }
+  const filing = t.filingLimitIso ? (
+    <p className="fine">
+      Last day to file a complaint with the Commission: <strong>{longDate(t.filingLimitIso)}</strong>{" "}
+      {t.filingDaysLeft < 0 ? "(that date has passed, so a late complaint needs a good reason for the delay under Section 69)" : `(${t.filingDaysLeft} days from today; Section 69 allows two years)`}.
+    </p>
+  ) : null;
+
+  if (t.state === "too_early" && t.dueIso && earlyOk) {
+    return (
+      <section className="ws-card timing" aria-labelledby="timing-h">
+        <h2 id="timing-h">Too early to send a notice</h2>
+        <p>{t.basis} So the company has until <strong>{longDate(t.dueIso)}</strong> ({t.daysLeft === 0 ? "today is its last day" : `${t.daysLeft} day${t.daysLeft === 1 ? "" : "s"} left`}). A notice sent before then may be premature, because the company hasn&apos;t yet broken its own promise.</p>
+        <div className="stack-row">
+          <button type="button" className="button small primary" onClick={() => mutateCase(rec.id, () => ({ patch: { followUpDate: addDays(t.dueIso!, 1) }, events: [makeEvent("date", `Follow-up date set to ${longDate(addDays(t.dueIso!, 1))}`, true)] }))}>
+            Set my follow-up for {longDate(addDays(t.dueIso, 1))}
+          </button>
+          <button type="button" className="link" onClick={refused}>The company has already refused in writing</button>
+        </div>
+        {filing}
+      </section>
+    );
+  }
+  if (t.state === "ready" && t.dueIso && earlyOk) {
+    return (
+      <section className="ws-card timing ready" aria-labelledby="timing-h">
+        <h2 id="timing-h">The company&apos;s time has passed</h2>
+        <p>{t.basis} That ended on {longDate(t.dueIso)}, so a notice is reasonable now.</p>
+        {filing}
+      </section>
+    );
+  }
+  if (t.state === "refused" && earlyOk) {
+    return (
+      <section className="ws-card timing refused" aria-labelledby="timing-h">
+        <h2 id="timing-h">No waiting needed</h2>
+        <p>{t.basis}</p>
+        {filing}
+      </section>
+    );
+  }
+  return filing ? (
+    <section className="ws-card timing ready" aria-labelledby="timing-h">
+      <h2 id="timing-h">Time limits</h2>
+      {filing}
+    </section>
+  ) : null;
 }

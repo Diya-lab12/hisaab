@@ -439,3 +439,20 @@ dialog.modal::backdrop { background: rgba(21, 29, 36, .55); }
 .modal-in { padding: clamp(16px, 3vw, 26px); overflow-y: auto; max-height: calc(100vh - 32px); }
 .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; position: sticky; top: calc(-1 * clamp(16px, 3vw, 26px)); background: var(--page); padding: 4px 0 10px; z-index: 2; }
 .modal-head h2 { margin: 0; font-size: 1.3rem; }
+
+/* ---- Company details, timing and the advocate steps ---- */
+.company-details { border: 1.5px dashed var(--line); border-radius: 12px; padding: 14px 16px 6px; margin: 4px 0 18px; min-width: 0; }
+.company-details legend { font-weight: 650; padding: 0 6px; font-size: .95rem; }
+.company-details > .fine { margin: 0 0 8px; }
+.badge.st-review { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
+.timing { border-left: 5px solid var(--amber); }
+.timing.ready, .timing.refused { border-left-color: var(--primary); }
+.timing h2 { margin: 0 0 6px; font-size: 1.1rem; }
+.timing p { margin: 0 0 8px; }
+.steps-box { list-style: none; counter-reset: s; margin: 12px 0; padding: 0 !important; display: grid; gap: 12px !important; }
+.steps-box > li { counter-increment: s; position: relative; padding: 12px 14px 12px 48px; border: 1px solid var(--line); border-radius: 12px; background: var(--page); }
+.steps-box > li::before { content: counter(s); position: absolute; left: 14px; top: 12px; width: 24px; height: 24px; border-radius: 50%; background: var(--secondary-deep); color: #fff; font-weight: 700; font-size: .8rem; display: grid; place-items: center; }
+.steps-box > li.locked { opacity: .7; }
+.steps-box h4 { margin: 0 0 4px; font-size: 1rem; }
+.steps-box p { margin: 0 0 8px; font-size: .92rem; }
+.draft-banner { padding: 10px 14px; border-radius: 10px; background: var(--amber-bg); border: 1px solid var(--amber-line); color: var(--amber); font-weight: 650; font-size: .9rem; margin: 0 0 12px; }

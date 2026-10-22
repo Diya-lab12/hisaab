@@ -26,13 +26,35 @@ export const QUESTIONS: Record<IssueId, Question[]> = {
       type: "select",
       options: [...YES_NO_NOT_SURE, { value: "na", label: "I didn't return anything" }],
     },
-    { id: "promisedTiming", label: "How long did they say the refund would take?", type: "text", placeholder: "e.g. 5 to 7 working days" },
+    { id: "promisedTiming", label: "How long did they say the refund would take?", type: "text", placeholder: "e.g. 5 to 7 working days", hint: "Use a number, like 7 days, 5 to 7 working days or 1 month. Check your bill or receipt too." },
     { id: "followUps", label: "What have you already tried?", type: "textarea", placeholder: "e.g. emailed support on 3 March, chatted on 10 March", hint: "Dates and the company's replies help most." },
+    {
+      id: "refusedInWriting",
+      label: "Has the company already refused in writing?",
+      type: "select",
+      options: [
+        { value: "yes", label: "Yes, they refused" },
+        { value: "no", label: "No, they haven't replied or asked me to wait" },
+        { value: "unsure", label: "Not sure" },
+      ],
+      hint: "If they have refused, you don't have to wait for their period to end.",
+    },
   ],
   delivery: [
     { id: "promisedDelivery", label: "Delivery date they promised", type: "date" },
     { id: "tracking", label: "What does the tracking say?", type: "text", placeholder: "e.g. shows delivered, but nothing arrived" },
     { id: "companyResponse", label: "What has the company said so far?", type: "textarea", placeholder: "e.g. asked me to wait 7 days, then closed the ticket" },
+    {
+      id: "refusedInWriting",
+      label: "Has the company already refused in writing?",
+      type: "select",
+      options: [
+        { value: "yes", label: "Yes, they refused" },
+        { value: "no", label: "No, they haven't replied or asked me to wait" },
+        { value: "unsure", label: "Not sure" },
+      ],
+      hint: "If they have refused, you don't have to wait for their period to end.",
+    },
   ],
   faulty: [
     { id: "fault", label: "What exactly is wrong with it?", type: "textarea", placeholder: "e.g. it will not switch on; the screen flickers" },

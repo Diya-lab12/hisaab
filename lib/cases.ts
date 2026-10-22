@@ -2,19 +2,21 @@ import { useMemo, useSyncExternalStore } from "react";
 import type { ComplaintInput } from "./checks";
 import { evidenceFor } from "./evidenceItems";
 import { NOTICE_DEADLINE_DAYS } from "./config";
-import { addDays, daysFromToday, toIso } from "./deadlines";
+import { addDays, daysFromToday, longDate, toIso } from "./deadlines";
+import { timingCheck } from "./timing";
 import type { Result } from "./types";
 
 // Cases are saved only in this browser. There is no account and no server copy, so they do not
 // sync across devices. "Session only" cases use sessionStorage and vanish when the tab closes.
 // Pictures are never saved here: only their counts and file names.
 
-export type CaseStatus = "draft" | "ready" | "sent" | "awaiting" | "resolved";
+export type CaseStatus = "draft" | "ready" | "review" | "sent" | "awaiting" | "resolved";
 
 export const STATUS_LABEL: Record<CaseStatus, string> = {
   draft: "Draft",
   ready: "Ready for review",
-  sent: "Sent — recorded by you",
+  review: "With the advocate — recorded by you",
+  sent: "Sent to the company — recorded by you",
   awaiting: "Awaiting response — recorded by you",
   resolved: "Resolved — recorded by you",
 };
@@ -205,7 +207,7 @@ export function mutateCase(id: string, change: (rec: CaseRecord) => { patch?: Pa
 }
 
 export function blankInput(): ComplaintInput {
-  return { name: "", address: "", contact: "", company: "", amount: "", incidentDate: "", description: "", issueType: "", resolution: "", resolutionOther: "", answers: {} };
+  return { name: "", address: "", contact: "", company: "", amount: "", incidentDate: "", description: "", issueType: "", resolution: "", resolutionOther: "", answers: {}, legalName: "", companyAddress: "", companyCin: "", companyEmail: "" };
 }
 
 /** Add events and optionally change fields, then save. */
@@ -243,6 +245,14 @@ export function nextAction(rec: CaseRecord, have: Set<string>, now = new Date())
   if (rec.status === "resolved") {
     return { title: "Keep your records", body: "You marked this case resolved. Keep your documents and messages for a while in case the issue comes back." };
   }
+  if (rec.status === "review") {
+    return {
+      title: "Wait for the advocate",
+      body: "You've asked the advocate to review your notice. When the signed notice has been sent to the company, record that here. If you haven't heard back, you can email the advocate again.",
+      anchor: "record",
+      anchorLabel: "Record an update",
+    };
+  }
   if (rec.status === "awaiting" || rec.status === "sent") {
     if (fu?.tone === "overdue") {
       return {
@@ -269,6 +279,15 @@ export function nextAction(rec: CaseRecord, have: Set<string>, now = new Date())
     };
   }
   // draft or ready
+  const timing = timingCheck(rec.input, now);
+  if (rec.result && timing.state === "too_early" && timing.dueIso) {
+    return {
+      title: "It's too early to send your notice",
+      body: `By the company's own timeline it has until ${longDate(timing.dueIso)} (${timing.daysLeft === 0 ? "today is its last day" : `${timing.daysLeft} day${timing.daysLeft === 1 ? "" : "s"} left`}). A notice sent now may be premature. Set a follow-up for the day after, and check again then.`,
+      anchor: "followup",
+      anchorLabel: "Set my follow-up date",
+    };
+  }
   if (!rec.result) {
     return { title: "Finish your complaint", body: "Your answers are saved as a draft. Continue to check your case and prepare the complaint.", anchor: "continue", anchorLabel: "Continue draft" };
   }
@@ -281,8 +300,8 @@ export function nextAction(rec: CaseRecord, have: Set<string>, now = new Date())
     };
   }
   return {
-    title: "Read your complaint, then send it",
-    body: "Check every fact is true, edit anything that isn't, and send it to the company's grievance contact. Come back and record that you sent it.",
+    title: "Read your notice, then ask the advocate to review it",
+    body: "Check every fact is true and edit anything that isn't. Then email it to the advocate, who reviews, signs and sends it to the company. Come back and record each step.",
     anchor: "complaint",
     anchorLabel: "Open complaint",
   };

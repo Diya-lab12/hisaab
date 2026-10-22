@@ -28,6 +28,10 @@ function sanitise(raw: Record<string, unknown>): ComplaintInput {
     resolution: RESOLUTIONS.some((r) => r.value === raw.resolution) ? (raw.resolution as string) : "",
     resolutionOther: str(raw.resolutionOther, 200),
     answers: {},
+    legalName: str(raw.legalName, 160),
+    companyAddress: str(raw.companyAddress, 300),
+    companyCin: str(raw.companyCin, 30),
+    companyEmail: str(raw.companyEmail, 120),
   };
   // Only answers to the questions for this problem, each capped, are kept.
   const answers = raw.answers && typeof raw.answers === "object" ? (raw.answers as Record<string, unknown>) : {};

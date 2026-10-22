@@ -58,10 +58,10 @@ export default function ExampleWorkspace({ example: e }: { example: Example }) {
       </section>
 
       <section className="ws-card" aria-labelledby="ex-comp">
-        <h2 id="ex-comp">A sample complaint you can edit</h2>
+        <h2 id="ex-comp">A sample legal notice you can edit</h2>
         <p className="fine">Try editing it. Changes here are not saved. In your own case, your details and facts are filled in for you.</p>
         <div className="paper">
-          <label className="sr-only" htmlFor="ex-text">Sample complaint, editable</label>
+          <label className="sr-only" htmlFor="ex-text">Sample legal notice, editable</label>
           <textarea id="ex-text" value={text} onChange={(ev) => setText(ev.target.value)} rows={18} spellCheck />
         </div>
         {text !== e.complaint && <button type="button" className="link" onClick={() => setText(e.complaint)}>Reset the sample</button>}

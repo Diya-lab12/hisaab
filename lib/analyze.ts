@@ -36,8 +36,8 @@ const CATEGORIES: Category[] = [
       { id: "2(47)", why: "Refusing to refund money taken after you cancelled can be an unfair trade practice (clause (viii))." },
       { id: "39", why: "Lets the Commission order a refund, compensation and costs." },
     ],
-    breach: "I cancelled the service, but I was charged again afterwards. This is a deficiency in service under Section 2(11) and can be an unfair trade practice under Section 2(47) of the Consumer Protection Act, 2019.",
-    demand: "refund the amount charged after my cancellation",
+    breach: "My client cancelled the service, but was charged again afterwards. This is a deficiency in service under Section 2(11) and can be an unfair trade practice under Section 2(47) of the Consumer Protection Act, 2019.",
+    demand: "refund the amount charged after my client's cancellation",
   },
   {
     name: "non-delivery / refund refused",
@@ -48,7 +48,7 @@ const CATEGORIES: Category[] = [
       { id: "2(47)", why: "Refusing to refund what you paid for a service that was not delivered properly, within the stated period or 30 days, is an unfair trade practice (clause (viii))." },
       { id: "39", why: "Lets the Commission order a refund, compensation and costs." },
     ],
-    breach: "The goods or services I paid for were not delivered, and you have refused to refund my money. This is a deficiency in service under Section 2(11) and an unfair trade practice under Section 2(47)(viii) of the Consumer Protection Act, 2019.",
+    breach: "The goods or services my client paid for were not delivered, and you have refused to refund my client's money. This is a deficiency in service under Section 2(11) and an unfair trade practice under Section 2(47)(viii) of the Consumer Protection Act, 2019.",
     demand: "refund the full amount with interest and pay reasonable compensation for the harassment caused",
   },
   {
@@ -60,7 +60,7 @@ const CATEGORIES: Category[] = [
       { id: "2(47)", why: "Charging beyond the agreed or displayed price can be an unfair trade practice." },
       { id: "39", why: "Lets the Commission order a refund of the excess, compensation and costs." },
     ],
-    breach: "I was charged more than the agreed or displayed price. Overcharging can be an unfair trade practice under Section 2(47) of the Consumer Protection Act, 2019.",
+    breach: "My client was charged more than the agreed or displayed price. Overcharging can be an unfair trade practice under Section 2(47) of the Consumer Protection Act, 2019.",
     demand: "refund the excess amount charged with interest and pay reasonable compensation",
   },
   {
@@ -72,7 +72,7 @@ const CATEGORIES: Category[] = [
       { id: "2(7)", why: "You bought the goods for your own use, so you are a 'consumer'." },
       { id: "39", why: "Lets the Commission order repair, replacement, refund, compensation and costs." },
     ],
-    breach: "The product I bought has a defect, which is covered by Section 2(10) of the Consumer Protection Act, 2019, and you have not remedied it.",
+    breach: "The product my client bought has a defect, which is covered by Section 2(10) of the Consumer Protection Act, 2019, and you have not remedied it.",
     demand: "replace the product or refund the price in full with interest and pay reasonable compensation",
   },
   {
@@ -84,7 +84,7 @@ const CATEGORIES: Category[] = [
       { id: "2(7)", why: "You paid for the service for your own use, so you are a 'consumer'." },
       { id: "39", why: "Lets the Commission order a refund, compensation and costs." },
     ],
-    breach: "The service I paid for was deficient, which is covered by Section 2(11) of the Consumer Protection Act, 2019.",
+    breach: "The service my client paid for was deficient, which is covered by Section 2(11) of the Consumer Protection Act, 2019.",
     demand: "refund the amount paid with interest and pay reasonable compensation for the loss and inconvenience",
   },
   {
@@ -95,7 +95,7 @@ const CATEGORIES: Category[] = [
       { id: "2(47)", why: "Refusing to refund the price of defective goods or a deficient service within the stated period or 30 days is an unfair trade practice (clause (viii))." },
       { id: "39", why: "Lets the Commission order a refund, compensation and costs." },
     ],
-    breach: "You have refused to refund the amount due to me, which is an unfair trade practice under Section 2(47)(viii) of the Consumer Protection Act, 2019.",
+    breach: "You have refused to refund the amount due to my client, which is an unfair trade practice under Section 2(47)(viii) of the Consumer Protection Act, 2019.",
     demand: "refund the full amount with interest and pay reasonable compensation",
   },
 ];
@@ -143,12 +143,16 @@ const PREFERRED: Record<string, string> = {
   subscription: "charged after cancelling",
 };
 
+function toClientVoice(text: string): string {
+  return text.replace(/\bmy\b/gi, "my client's").replace(/\bI\b/g, "my client");
+}
+
 function requestedDemand(input: ComplaintInput, fallback: string, category: string): string {
   const r = input.resolution;
-  if (r === "refund") return category === "charged after cancelling" ? "refund the amount charged after my cancellation" : "refund the amount I paid";
+  if (r === "refund") return category === "charged after cancelling" ? "refund the amount charged after my client's cancellation" : "refund the amount my client paid";
   if (r === "replacement") return "replace the product with a new one";
   if (r === "repair") return "repair the problem free of charge";
-  if (r === "other" && input.resolutionOther?.trim()) return input.resolutionOther.trim().replace(/[.\s]+$/, "");
+  if (r === "other" && input.resolutionOther?.trim()) return toClientVoice(input.resolutionOther.trim().replace(/[.\s]+$/, ""));
   return fallback;
 }
 
@@ -196,11 +200,13 @@ export function analyze(input: ComplaintInput): Analysis {
   const facts = input.description.trim().replace(/\s+/g, " ");
   const extra = answerLines(input.issueType ?? "", input.answers).map((l) => `${l.label} ${l.value}`.replace(/\?\s*/, ": ")).join(". ");
 
-  const noticeBody = `I am a consumer. I paid ${amount} to ${company}. The relevant date is ${date}. The facts are as follows: ${facts}${/[.!?]$/.test(facts) ? "" : "."}${extra ? " Further details: " + extra + "." : ""}
+  const noticeBody = `1. My client paid ${amount} to ${company}. The relevant date is ${date}.
 
-${c.breach}
+2. My client's account, in the client's own words, is: "${facts}"${extra ? ` Further details: ${extra}.` : ""}
 
-I therefore request that you ${requestedDemand(input, c.demand, c.name)}.`;
+3. ${c.breach}
+
+4. My client therefore requests that you ${requestedDemand(input, c.demand, c.name)}.`;
 
   return {
     status: "covered",

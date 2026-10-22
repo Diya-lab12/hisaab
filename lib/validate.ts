@@ -4,7 +4,7 @@ import { LIMITATION_YEARS } from "./config";
 import { getIssue } from "./issues";
 import type { Question } from "./questions";
 
-export type FieldKey = "name" | "address" | "contact" | "company" | "amount" | "incidentDate" | "description" | "issueType" | "resolution" | "resolutionOther";
+export type FieldKey = "legalName" | "companyAddress" | "companyCin" | "companyEmail" | "name" | "address" | "contact" | "company" | "amount" | "incidentDate" | "description" | "issueType" | "resolution" | "resolutionOther";
 export type FieldCheck = { error: string | null; note: string | null };
 
 const EMAIL = /^[^\s@?&#]+@[^\s@?&#]+\.[^\s@?&#]+$/;
@@ -23,6 +23,21 @@ export function checkField(key: FieldKey, input: ComplaintInput, now = new Date(
   switch (key) {
     case "issueType":
       return v ? ok : { error: "Pick the kind of complaint.", note: null };
+    case "legalName":
+      if (v && !/\b(limited|ltd|llp|pvt|private|incorporated|inc|corporation|corp|co)\b/i.test(v)) {
+        return { error: null, note: "Companies registered in India end with “Limited” or “Private Limited”. If this isn't a company, you can ignore this." };
+      }
+      return ok;
+    case "companyCin":
+      if (v && !/^[LU]\d{5}[A-Z]{2}\d{4}[A-Z]{3}\d{6}$/i.test(v.replace(/\s/g, ""))) {
+        return { error: null, note: "A CIN has 21 characters and starts with L or U. Check it against the company's invoice." };
+      }
+      return ok;
+    case "companyEmail":
+      if (v && !EMAIL.test(v)) return { error: "That email doesn't look right.", note: null };
+      return ok;
+    case "companyAddress":
+      return ok;
     case "resolution":
       return v ? ok : { error: "Choose what you'd like the company to do.", note: null };
     case "resolutionOther":
@@ -74,7 +89,7 @@ export function checkField(key: FieldKey, input: ComplaintInput, now = new Date(
 }
 
 export const STEP_FIELDS: Record<"complaint" | "details", FieldKey[]> = {
-  complaint: ["issueType", "company", "amount", "incidentDate", "resolution", "resolutionOther", "description"],
+  complaint: ["issueType", "company", "companyEmail", "amount", "incidentDate", "resolution", "resolutionOther", "description"],
   details: ["name", "address", "contact"],
 };
 

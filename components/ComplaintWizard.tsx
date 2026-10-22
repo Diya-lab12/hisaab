@@ -13,9 +13,11 @@ import { NEW_SCOPE, forScope, rescopeEvidence, summarise, useAllEvidence } from 
 import { getIssue } from "@/lib/issues";
 import { QUESTIONS, RESOLUTIONS, answerLines, resolutionLabel } from "@/lib/questions";
 import type { Result } from "@/lib/types";
+import { timingCheck } from "@/lib/timing";
 import { STEP_FIELDS, checkAnswer, checkField, type FieldKey } from "@/lib/validate";
+import { longDate } from "@/lib/deadlines";
 
-const ALL_KEYS: FieldKey[] = ["issueType", "company", "amount", "incidentDate", "resolution", "resolutionOther", "description", "name", "address", "contact"];
+const ALL_KEYS: FieldKey[] = ["issueType", "company", "legalName", "companyAddress", "companyCin", "companyEmail", "amount", "incidentDate", "resolution", "resolutionOther", "description", "name", "address", "contact"];
 const STEP_KEYS: FieldKey[][] = [STEP_FIELDS.complaint, [], STEP_FIELDS.details, []];
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
@@ -48,6 +50,7 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
     for (const k of ALL_KEYS) out[k] = checkField(k, v);
     return out;
   }, [v]);
+  const timing = useMemo(() => timingCheck(v), [v]);
   const questions = useMemo(() => (issue ? QUESTIONS[issue.id] : []), [issue]);
   const answerErrors = useMemo(() => {
     const out: Record<string, string | null> = {};
@@ -226,6 +229,33 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
                 <Field id="f-company" label="Company name" error={shown("company").error} valid={isValid("company")} hint="The company you paid, for example Swiggy or IndiGo.">
                   {(b) => <input {...b} {...text("company")} placeholder="e.g. Swiggy" autoComplete="organization" />}
                 </Field>
+                <fieldset className="company-details">
+                  <legend>Who exactly is the company?</legend>
+                  <p className="fine">
+                    For companies. A brand name (like Zara) is often not the legal entity. If you bought from a person or a small shop, put their name and address in the fields below instead.
+                  </p>
+                  <Field id="f-legalName" label="Legal name of the company" note={shown("legalName").note} valid={isValid("legalName")} hint="For example “… Private Limited”. Leave it blank if you can't find it. The advocate will check.">
+                    {(b) => <input {...b} {...text("legalName")} placeholder="as on your invoice or the company's Terms page" autoComplete="off" />}
+                  </Field>
+                  <Field id="f-companyAddress" label="Registered office address (optional)" hint="A notice can go to a company's registered office by registered post, speed post or courier (Companies Act, 2013, Section 20).">
+                    {(b) => <textarea {...b} {...text("companyAddress")} rows={2} />}
+                  </Field>
+                  <div className="row">
+                    <Field id="f-companyCin" label="CIN (optional)" note={shown("companyCin").note} hint="21 characters, printed on the company's bills and letters.">
+                      {(b) => <input {...b} {...text("companyCin")} autoComplete="off" />}
+                    </Field>
+                    <Field id="f-companyEmail" label="Company email (optional)" error={shown("companyEmail").error} hint="A grievance or legal contact.">
+                      {(b) => <input {...b} {...text("companyEmail")} type="email" autoComplete="off" />}
+                    </Field>
+                  </div>
+                  <details className="more">
+                    <summary>Where do I find these?</summary>
+                    <p className="fine">
+                      Look at your invoice, the order confirmation, or the company&apos;s Terms and Contact pages. A company must print its name, registered office address and CIN on its bills and letters (Companies Act, 2013, Section 12), and online platforms must show their legal name, address and a grievance officer (Consumer Protection (E-Commerce) Rules, 2020). A registered company&apos;s name ends in &ldquo;Limited&rdquo; or &ldquo;Private Limited&rdquo; (Section 4). The Ministry of Corporate Affairs also lets you look up company details by name on its website.
+                    </p>
+                  </details>
+                </fieldset>
+
                 <div className="row">
                   <Field
                     id="f-amount"
@@ -263,6 +293,20 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
                     </Field>
                   );
                 })}
+
+                {timing.state === "too_early" && timing.dueIso && (
+                  <p className="callout warn" role="status">
+                    <strong>It may be too early for a notice.</strong> {timing.basis} That gives the company until {longDate(timing.dueIso)} ({timing.daysLeft === 0 ? "today is its last day" : `${timing.daysLeft} day${timing.daysLeft === 1 ? "" : "s"} left`}). You can still prepare everything now. Hisaab will hold the advocate review until then, unless they have already refused in writing.
+                  </p>
+                )}
+                {timing.state === "ready" && timing.dueIso && (
+                  <p className="callout" role="status">
+                    <strong>The company&apos;s time has passed.</strong> {timing.basis} It ended on {longDate(timing.dueIso)}, so a notice is reasonable now.
+                  </p>
+                )}
+                {timing.state === "refused" && (
+                  <p className="callout" role="status"><strong>No waiting needed.</strong> {timing.basis}</p>
+                )}
 
                 <fieldset className="seg" aria-describedby="res-msg">
                   <legend>What would you like the company to do?</legend>
@@ -339,7 +383,9 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
             <dl className="review">
               {[
                 { label: "Problem", value: issue?.situation ?? "", to: 0 },
-                { label: "Company", value: v.company, to: 0 },
+                { label: "Brand or trade name", value: v.company, to: 0 },
+                { label: "Legal name", value: v.legalName?.trim() || "Not provided. The advocate will confirm it.", to: 0 },
+                { label: "Registered office", value: v.companyAddress?.trim() || "Not provided", to: 0 },
                 { label: "Amount", value: v.amount ? formatRupees(parseAmount(v.amount)) : "", to: 0 },
                 { label: dateLabel, value: v.incidentDate ? formatDate(v.incidentDate) : "", to: 0 },
                 ...answerLines(v.issueType ?? "", v.answers).map((l) => ({ label: l.label, value: l.value, to: 0 })),

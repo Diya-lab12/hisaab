@@ -48,22 +48,35 @@ export const EXAMPLES: Example[] = [
       "A bank statement for the period showing no refund credit.",
       "The company's grievance contact, found on its website or app under Contact, Terms or Grievance Officer.",
     ],
-    complaint: `To,
-The Grievance Officer
-The online store
+    complaint: `DRAFT FOR ADVOCATE REVIEW. NOT SENT. NOT APPROVED BY AN ADVOCATE YET.
 
-Subject: Request for refund of ₹2,499 for a returned order
+LEGAL NOTICE
+Under the Consumer Protection Act, 2019
+
+To,
+M/s The Company (Private Limited)
+(operating under the brand or trade name "The online store")
+Registered office: as shown on the company's invoice
+
+Subject: Legal notice regarding ₹2,499 paid for a returned order
 
 Sir/Madam,
 
-On 2 March 2026 I paid ₹2,499 by UPI for a pair of shoes. They did not fit, so I requested a return on 6 March. Your courier collected the parcel on 8 March and your app showed "Return received". On 10 March your email said the refund would be processed in 5 to 7 working days.
+Under instructions from and on behalf of my client, I serve upon you this notice:
 
-I have still not received the refund. I contacted your support on 20 March and 29 March, and was asked to wait without being given a date.
+1. On 2 March 2026 my client paid ₹2,499 by UPI for a pair of shoes. The shoes did not fit, so a return was requested on 6 March. Your courier collected the parcel on 8 March and your app showed "Return received".
 
-I request that you refund ₹2,499 to my original payment method within 15 days of receiving this letter. If this is not resolved, I may approach the appropriate Consumer Disputes Redressal Commission.
+2. On 10 March you wrote that the refund would be processed in 5 to 7 working days. It has still not been received. My client contacted your support on 20 March and 29 March, and was asked to wait without being given a date.
+
+3. This is a deficiency in service and can be an unfair trade practice under the Consumer Protection Act, 2019.
+
+4. My client therefore requests that you refund ₹2,499 to the original payment method.
+
+My client requires you to comply within 15 days of receiving this notice. If this is not resolved by then, my client will be constrained to approach the appropriate Consumer Disputes Redressal Commission.
 
 Yours faithfully,
-(Your name and address would appear here)`,
+
+(The advocate's name, enrolment number and signature would appear here after review.)`,
     nextAction:
       "Add the bank statement and the 29 March chat, then send the complaint to the company's grievance contact. Record that you sent it, and set a follow-up date.",
   },
@@ -95,22 +108,35 @@ Yours faithfully,
       "Any written note from the technician about the part.",
       "Whether the customer would accept a repair, a replacement or a refund.",
     ],
-    complaint: `To,
-The Grievance Officer
-The appliance company
+    complaint: `DRAFT FOR ADVOCATE REVIEW. NOT SENT. NOT APPROVED BY AN ADVOCATE YET.
 
-Subject: Request for repair or replacement of an appliance under warranty
+LEGAL NOTICE
+Under the Consumer Protection Act, 2019
+
+To,
+M/s The Company (Private Limited)
+(operating under the brand or trade name "The online store")
+Registered office: as shown on the company's invoice
+
+Subject: Legal notice regarding an appliance that failed under warranty
 
 Sir/Madam,
 
-I bought an appliance from you on 14 January 2026 for ₹18,000. The warranty card states 12 months. On 20 July 2026 it stopped working.
+Under instructions from and on behalf of my client, I serve upon you this notice:
 
-I raised a service request on 21 July. A technician visited on 26 July and said a part was needed. When I called on 14 August I was told the part was not available. I raised a second request on 2 September. The appliance has still not been repaired.
+1. My client bought an appliance from you on 14 January 2026 for ₹18,000. The warranty card states 12 months. On 20 July 2026 it stopped working.
 
-I request that you repair it free of charge, or replace it if repair is not possible, within 15 days of receiving this letter. If this is not resolved, I may approach the appropriate Consumer Disputes Redressal Commission.
+2. A service request was raised on 21 July. A technician visited on 26 July and said a part was needed. On 14 August my client was told the part was not available. A second request on 2 September has also not led to a repair.
+
+3. A product that fails within its warranty period and is not repaired is a defect under the Consumer Protection Act, 2019, and the service given is deficient.
+
+4. My client therefore requests that you repair the appliance free of charge, or replace it if repair is not possible.
+
+My client requires you to comply within 15 days of receiving this notice. If this is not resolved by then, my client will be constrained to approach the appropriate Consumer Disputes Redressal Commission.
 
 Yours faithfully,
-(Your name and address would appear here)`,
+
+(The advocate's name, enrolment number and signature would appear here after review.)`,
     nextAction:
       "Add screenshots of the two service requests, then send the complaint. Set a follow-up date so you remember to check for a reply.",
   },
@@ -139,20 +165,35 @@ Yours faithfully,
       "Whether the confirmation email states an effective date.",
       "A screenshot of the 20 February chat.",
     ],
-    complaint: `To,
-The Grievance Officer
-The subscription company
+    complaint: `DRAFT FOR ADVOCATE REVIEW. NOT SENT. NOT APPROVED BY AN ADVOCATE YET.
 
-Subject: Request for refund of a charge made after cancellation
+LEGAL NOTICE
+Under the Consumer Protection Act, 2019
+
+To,
+M/s The Company (Private Limited)
+(operating under the brand or trade name "The online store")
+Registered office: as shown on the company's invoice
+
+Subject: Legal notice regarding a charge made after cancellation
 
 Sir/Madam,
 
-I cancelled my monthly subscription on 28 January 2026 and received a confirmation email. On 5 February 2026 I was charged ₹499. When I contacted support on 6 February and 20 February I was told the plan was still active, and no refund was offered.
+Under instructions from and on behalf of my client, I serve upon you this notice:
 
-I request that you refund the ₹499 charged after my cancellation, within 15 days of receiving this letter. If this is not resolved, I may approach the appropriate Consumer Disputes Redressal Commission.
+1. My client took a monthly subscription from you at ₹499. It was cancelled on 28 January 2026 and you confirmed the cancellation by email.
+
+2. On 5 February 2026 my client was charged ₹499 again. When my client contacted your support on 6 February and 20 February, the plan was said to be still active and no refund was offered.
+
+3. Charging a customer after a confirmed cancellation is a deficiency in service and can be an unfair trade practice under the Consumer Protection Act, 2019.
+
+4. My client therefore requests that you refund the ₹499 charged after the cancellation.
+
+My client requires you to comply within 15 days of receiving this notice. If this is not resolved by then, my client will be constrained to approach the appropriate Consumer Disputes Redressal Commission.
 
 Yours faithfully,
-(Your name and address would appear here)`,
+
+(The advocate's name, enrolment number and signature would appear here after review.)`,
     nextAction:
       "Add the sign-up terms and the 20 February chat. Then send the complaint, and set a follow-up date for the reply.",
   },

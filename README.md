@@ -4,7 +4,7 @@ Describe what a company did wrong. Hisaab tells you whether the Consumer Protect
 
 Pages: **Home** (situation cards), **Example cases** (three clearly labelled, fictional walkthroughs), a 4-step **guided flow** that adapts to the problem (the problem, evidence, your details, review), **My cases** (cases saved in this browser), and a **case workspace** (evidence checklist, editable complaint, activity timeline, next step, and notes you record yourself such as sent, replies and a follow-up date).
 
-What it does not do: send anything for you, file anywhere, remind you in the background, or sync across devices. Cases live in this browser (or only in the tab, if you choose). Pictures are never saved.
+What it does not do: send a notice to a company (it goes to an advocate for review, signature and sending, by email, outside the app), file anywhere, remind you in the background, or sync across devices. Cases live in this browser (or only in the tab, if you choose). Pictures are never saved.
 
 ## Run it
 
@@ -49,3 +49,7 @@ Safeguards: required-field checks run before any AI call; any section not in `le
 Set `OPENROUTER_API_KEY` (and optionally `OPENROUTER_MODEL`) in the host's environment settings. Never commit `.env.local`.
 
 Tests: see `test-cases.md`.
+
+## Advocate review
+
+The notice is drafted in an advocate's voice and marked as an unsigned draft. The client cannot send it to the company from the app: the app opens an email to the reviewing advocate (details in `lib/advocate.ts`), who reviews it, signs it, sends it to the company and copies the client. The app cannot see any of this, so the client records each step. There is no signature image in the code.

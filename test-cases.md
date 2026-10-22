@@ -20,6 +20,18 @@ Run in the app (`npm run dev`). Pictures live in the open tab only, so reloading
 | 9 | Save draft, then open My cases | The draft appears with "Continue draft". Stored data has picture names and counts only, never image data |
 | 10 | Type only "my neighbour is noisy", Continue | "This looks outside the Consumer Protection Act" with where else to go. No case is saved |
 
+## Company names, timing and the advocate
+| # | Do this | Expect |
+|---|---|---|
+| A1 | Start a refund case and open "Who exactly is the company?" | Legal name, registered office, CIN and company email fields, with a small note that this is for companies. A name without "Limited"/"Private Limited" gets advice only. A bad CIN gets advice only. A bad email blocks Continue |
+| A2 | Return date a week ago, refund promised in "1 month" | A warning in the form and a "Too early to send a notice" card in the workspace with the date the company has until. The "Email the advocate" step is locked |
+| A3 | Click "The company has already refused in writing" | The card changes to "No waiting needed" and the email step unlocks (with evidence). The timeline records it as recorded by you |
+| A4 | Open the notice | "DRAFT FOR ADVOCATE REVIEW", "LEGAL NOTICE", the legal entity with the brand as its trade name, registered office and CIN, numbered paragraphs in the advocate's voice ("my client"), and the advocate's block marked as unsigned |
+| A5 | Look for a way to send it to the company | There is none. The only email goes to the advocate. Evidence is required for it |
+| A6 | Click "Email the advocate" | The email opens addressed to the advocate with the client, legal name, CIN, amount, date, evidence count and case reference. It does not change the status |
+| A7 | Click "I've emailed the advocate", then "The advocate sent it to the company" | Status becomes "With the advocate", then "Sent to the company", each recorded by you |
+| A8 | Faulty product or subscription case | No waiting-period check (we can't work one out), and the page says so |
+
 ## Picture checks
 | # | Do this | Expect |
 |---|---|---|

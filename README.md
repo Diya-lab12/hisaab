@@ -1,6 +1,8 @@
 # Hisaab
 
-Describe what a company did wrong. Hisaab tells you whether the Consumer Protection Act, 2019 covers it, explains what you can claim, gives a step-by-step script, and drafts a legal notice you can copy.
+Describe what a company did wrong. Hisaab tells you whether the Consumer Protection Act, 2019 covers it, explains what you can claim, and drafts a legal notice you can edit, copy, download (PDF or Word) or open in your email app. It also tracks the 15-day deadline and gives an evidence checklist for your kind of complaint.
+
+Two pages: **/** (describe your complaint) and **/case** (your case, the notice, next steps).
 
 General legal information only, not legal advice. Review the notice before sending it.
 
@@ -18,7 +20,10 @@ Without a key the app still works using built-in keyword rules (`lib/analyze.ts`
 
 | Part | File |
 |---|---|
-| Screen | `app/page.tsx`, `components/` |
+| Page 1: describe | `app/page.tsx`, `components/ComplaintForm.tsx` |
+| Page 2: case, notice, next steps | `app/case/page.tsx`, `components/CaseTab.tsx`, `NoticeTab.tsx`, `NextStepsTab.tsx` |
+| Industry advice and evidence lists | `lib/categories.ts` |
+| Deadlines, calendar reminder, PDF/Word/email helpers | `lib/deadlines.ts`, `lib/export.ts` |
 | Server route (key stays server-side) | `app/api/analyze/route.ts` |
 | AI call via OpenRouter | `lib/llm.ts`, `lib/prompt.ts` |
 | Keyword fallback | `lib/analyze.ts` |

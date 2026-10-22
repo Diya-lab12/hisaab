@@ -4,6 +4,7 @@ import type { Analysis } from "@/lib/analyze";
 import { analyzeWithLLM } from "@/lib/llm";
 import { ComplaintInput, filingInfo, invalidFields, missingFields, parseAmount } from "@/lib/checks";
 import { assembleNotice } from "@/lib/notice";
+import { COMMON_TIP, INDUSTRIES, detectIndustry } from "@/lib/categories";
 
 // The AI call can take several seconds; give the serverless function room (Vercel).
 export const maxDuration = 60;
@@ -54,10 +55,15 @@ export async function POST(req: Request) {
   if (result.status !== "covered") return NextResponse.json({ ...result, source, removedCitations });
 
   const { noticeBody, ...rest } = result;
+  const industryId = detectIndustry(input.company, input.description);
+  const industry = INDUSTRIES[industryId];
   return NextResponse.json({
     ...rest,
     source,
     removedCitations,
+    industry: { id: industryId, label: industry.label },
+    evidence: industry.evidence,
+    tips: [...industry.tips, COMMON_TIP],
     filing: filingInfo(parseAmount(input.amount)),
     notice: assembleNotice(input, noticeBody, result.sections.map((s) => s.id)),
   });

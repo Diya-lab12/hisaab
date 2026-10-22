@@ -20,7 +20,7 @@ import { ROUTES, SECTOR } from "@/lib/escalation";
 import { ADVOCATE } from "@/lib/advocate";
 import { sendToAdvocate, syncAdvocate } from "@/lib/advocateClient";
 import PayBox from "./PayBox";
-import { ADDONS, TIERS, quote, rupees, upiAccount } from "@/lib/pricing";
+import { ADDONS, TIERS, quote, rupees } from "@/lib/pricing";
 import { timingCheck, type Timing } from "@/lib/timing";
 import { getIssue } from "@/lib/issues";
 import { resolutionLabel } from "@/lib/questions";
@@ -439,7 +439,6 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
   const [checking, setChecking] = useState(false);
   const [again, setAgain] = useState(false);
   const [addons, setAddons] = useState<string[]>([]);
-  const account = upiAccount();
   const claim = parseAmount(rec.input.amount);
   const price = quote(claim, addons);
   const timing = timingCheck(rec.input);
@@ -519,24 +518,22 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
           <label htmlFor="adv-email" className="side-label">Your email, so the advocate can reach you</label>
           <input id="adv-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" aria-invalid={email !== "" && !emailOk} />
 
-          {account && (
-            <fieldset className="pay-opts">
-              <legend>Fee and extras</legend>
-              <p>
-                <strong>You pay nothing now.</strong> The advocate reads your case first. If she can take it, she tells you the fee for that case, and you pay only then, before she signs and sends the notice to the company. If she can&apos;t, you pay nothing.
-              </p>
-              <p className="fine">
-                Her usual fee for a claim of {claim > 0 ? formatRupees(claim) : "this size"} is about <strong>{rupees(price.fee)}</strong>. By claim: {TIERS.map((t) => `${t.label}: ${rupees(t.fee)}`).join(" · ")}. The final fee can differ.
-              </p>
-              <p className="fine">Extras you&apos;d like. She includes them in the fee she quotes:</p>
-              {ADDONS.map((a) => (
-                <label key={a.id} className="consent addon">
-                  <input type="checkbox" checked={addons.includes(a.id)} onChange={(e) => setAddons((cur) => (e.target.checked ? [...cur, a.id] : cur.filter((x) => x !== a.id)))} />
-                  <span><strong>{a.label}, about +{rupees(a.price)}.</strong> {a.detail}</span>
-                </label>
-              ))}
-            </fieldset>
-          )}
+          <fieldset className="pay-opts">
+            <legend>The advocate&apos;s fee</legend>
+            <p>
+              <strong>Sending it to {ADVOCATE.name} costs nothing.</strong> She reads your case first. If she can take it and you want the notice signed and sent to the company, she tells you the fee for your case, and you pay only then. If she can&apos;t take it, you pay nothing.
+            </p>
+            <p className="fine">
+              Her usual fee for a claim of {claim > 0 ? formatRupees(claim) : "this size"} is about <strong>{rupees(price.fee)}</strong>. By claim: {TIERS.map((t) => `${t.label}: ${rupees(t.fee)}`).join(" · ")}. The final fee can differ with your case.
+            </p>
+            <p className="fine">Extras you&apos;d like. She includes them in the fee she quotes:</p>
+            {ADDONS.map((a) => (
+              <label key={a.id} className="consent addon">
+                <input type="checkbox" checked={addons.includes(a.id)} onChange={(e) => setAddons((cur) => (e.target.checked ? [...cur, a.id] : cur.filter((x) => x !== a.id)))} />
+                <span><strong>{a.label}, about +{rupees(a.price)}.</strong> {a.detail}</span>
+              </label>
+            ))}
+          </fieldset>
 
           <label className="consent">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />

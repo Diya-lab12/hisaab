@@ -110,4 +110,18 @@ export async function reportPayment(rec: CaseRecord, utr: string): Promise<{ ok:
   }
 }
 
+/** Deletes the request, with the notice and details, from Hisaab's server. Returns an error message, or null on success. */
+export async function forgetRequest(rec: CaseRecord): Promise<string | null> {
+  const s = rec.submission;
+  if (!s?.token) return "This request can't be deleted from here.";
+  try {
+    const res = await fetch("/api/advocate/forget", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: s.ref, token: s.token }) });
+    if (res.ok || res.status === 404) return null;
+    const d = await res.json().catch(() => ({}));
+    return d.error ?? "Something went wrong. Please try again.";
+  } catch {
+    return "Network problem. Please try again.";
+  }
+}
+
 export const ADVOCATE_LINE = `${ADVOCATE.name}, Advocate · ${ADVOCATE.council} · Enrolment No. ${ADVOCATE.enrolment} · ${ADVOCATE.place}`;

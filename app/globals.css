@@ -603,3 +603,28 @@ a:not([class]) { color: var(--primary); }
 .paper { border-top: 4px solid var(--primary); }
 .situation, .issue, .ex-card { align-content: start; }
 @media (max-width: 599px) { .situations { grid-auto-rows: auto; } }
+
+/* Small helpers: write-it-for-me, explain in a language, progress */
+.write-helper { margin: -6px 0 14px; display: grid; gap: 8px; }
+.suggestion { white-space: pre-wrap; max-width: 62ch; color: var(--ink); }
+.explain { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: grid; gap: 8px; }
+.progress { margin: 0 0 18px; }
+.progress ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.progress li { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; position: relative; font-size: .82rem; font-weight: 550; color: var(--muted); }
+.progress li:not(:last-child)::after { content: ""; position: absolute; top: 14px; left: calc(50% + 18px); right: calc(-50% + 18px); height: 1px; background: var(--line); }
+.pg-dot { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line); background: #fff; font-size: .8rem; font-weight: 650; color: var(--muted); }
+.progress li.done .pg-dot { background: var(--primary); border-color: var(--primary); color: #fff; }
+.progress li.done, .progress li.now { color: var(--ink); }
+.progress li.now .pg-dot { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+@media (max-width: 640px) {
+  .progress ol { grid-template-columns: 1fr; gap: 6px; }
+  .progress li { flex-direction: row; text-align: left; gap: 10px; }
+  .progress li:not(:last-child)::after { display: none; }
+}
+
+/* Footer */
+.site-footer { border-top: 1px solid var(--line); background: #fff; margin-top: 24px; }
+.site-footer-in { max-width: 1120px; margin: 0 auto; padding: 16px 20px; display: flex; gap: 8px 24px; flex-wrap: wrap; justify-content: space-between; align-items: center; font-size: .9rem; }
+.site-footer p { margin: 0; max-width: 62ch; }
+.site-footer a { color: var(--primary); font-weight: 600; }
+@media print { .site-footer { display: none; } }

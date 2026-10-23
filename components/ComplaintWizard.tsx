@@ -6,6 +6,7 @@ import EvidenceSlots from "./EvidenceSlots";
 import Field from "./Field";
 import { IssuePicker } from "./SituationCards";
 import Stepper from "./Stepper";
+import WriteHelper from "./WriteHelper";
 import { notCoveredMatch } from "@/lib/analyze";
 import { blankInput, makeEvent, newId, saveCase, type CaseEvent, type CaseRecord, type StorageKind } from "@/lib/cases";
 import { formatDate, formatRupees, parseAmount, type ComplaintInput } from "@/lib/checks";
@@ -352,6 +353,7 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
                 >
                   {(b) => <textarea {...b} {...text("description")} rows={5} placeholder={issue.example} />}
                 </Field>
+                <WriteHelper value={v.description} issueLabel={issue.label} onUse={(t) => setV((cur) => ({ ...cur, description: t }))} />
                 <p className="fine">What you write here and in the answers above is sent to an AI to check your case. Your name, address, contact details and pictures are not. (A picture is sent only if you choose &ldquo;Check with AI&rdquo; for it.)</p>
               </>
             )}

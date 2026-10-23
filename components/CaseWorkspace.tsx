@@ -18,8 +18,10 @@ import {
 } from "@/lib/export";
 import { ROUTES, SECTOR } from "@/lib/escalation";
 import { ADVOCATE } from "@/lib/advocate";
-import { sendToAdvocate, syncAdvocate } from "@/lib/advocateClient";
+import { forgetRequest, sendToAdvocate, syncAdvocate } from "@/lib/advocateClient";
 import PayBox from "./PayBox";
+import ExplainInLanguage from "./ExplainInLanguage";
+import CaseProgress from "./CaseProgress";
 import { ADDONS, TIERS, quote, rupees } from "@/lib/pricing";
 import { timingCheck, type Timing } from "@/lib/timing";
 import { getIssue } from "@/lib/issues";
@@ -96,6 +98,8 @@ export default function CaseWorkspace({ rec }: { rec: CaseRecord }) {
         </div>
       </header>
 
+      {result && <CaseProgress rec={rec} hasPictures={pictures.length > 0} early={timingCheck(rec.input).state === "too_early"} />}
+
       <div className="ws">
         <div className="ws-main">
           {result && (
@@ -119,6 +123,7 @@ export default function CaseWorkspace({ rec }: { rec: CaseRecord }) {
                 {result.sections?.map((s) => <li key={s.id}><strong>Section {s.id}</strong> {s.why}</li>)}
               </ul>
               <p className="fine">Based only on what you wrote. This isn&apos;t a legal decision, so check these match your situation.</p>
+              <ExplainInLanguage result={result} />
             </section>
           )}
 
@@ -438,6 +443,8 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
   const [problem, setProblem] = useState<{ code: string; text: string } | null>(null);
   const [checking, setChecking] = useState(false);
   const [again, setAgain] = useState(false);
+  const [forgetting, setForgetting] = useState<"ask" | "busy" | null>(null);
+  const [forgetError, setForgetError] = useState<string | null>(null);
   const [addons, setAddons] = useState<string[]>([]);
   const claim = parseAmount(rec.input.amount);
   const price = quote(claim, addons);
@@ -464,6 +471,21 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
       setProblem({ code: res.code, text: res.message });
     }
     setSending(false);
+  }
+
+  async function forget() {
+    setForgetting("busy");
+    const err = await forgetRequest(rec);
+    if (err) {
+      setForgetError(err);
+      setForgetting("ask");
+      return;
+    }
+    mutateCase(rec.id, () => ({
+      patch: { status: "ready", submission: undefined },
+      events: [makeEvent("status", "Deleted your request from Hisaab's server. The advocate's email copy is hers to keep.", false)],
+    }));
+    setForgetting(null);
   }
 
   async function check() {
@@ -495,6 +517,20 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
             {sub.tracked !== false && <button type="button" className="button small" onClick={check} disabled={checking}>{checking ? "Checking…" : "Check for updates"}</button>}
             {sub.lastStatus === "declined" && <button type="button" className="button small primary" onClick={() => setAgain(true)}>Edit and send again</button>}
           </div>
+          {sub.tracked !== false && sub.lastStatus !== "sent" && (
+            forgetting ? (
+              <div className="callout" role="group" aria-label="Delete my request">
+                <p>Delete your request, notice and details from Hisaab&apos;s server? The advocate keeps the email she already received. This can&apos;t be undone.</p>
+                {forgetError && <p className="msg error" role="alert">{forgetError}</p>}
+                <div className="stack-row">
+                  <button type="button" className="button small danger" onClick={forget} disabled={forgetting === "busy"}>{forgetting === "busy" ? "Deleting…" : "Yes, delete it"}</button>
+                  <button type="button" className="link" onClick={() => { setForgetting(null); setForgetError(null); }}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <button type="button" className="link" onClick={() => setForgetting("ask")}>Delete my request from Hisaab&apos;s server</button>
+            )
+          )}
         </div>
       ) : (
         <div className="adv-form">

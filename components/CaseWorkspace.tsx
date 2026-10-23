@@ -503,6 +503,7 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
 
       {!showForm && sub ? (
         <div className="adv-sent">
+          <svg className="sent-tick" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M7.5 12.5l3 3 6-7" /></svg>
           <p><strong>Sent to {ADVOCATE.name} on {new Date(sub.sentAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}.</strong> Reference <code>{sub.ref}</code>.</p>
           <p className={`adv-status ${sub.lastStatus}`}>{sub.tracked === false ? "Sent to the advocate by email" : SERVER_LABEL[sub.lastStatus] ?? "Waiting for the advocate"}</p>
           {sub.payment?.verified && sub.payment.amount > 0 && <p className="fine">Payment of {rupees(sub.payment.amount)} confirmed by the advocate.</p>}

@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import CheckingSteps from "./CheckingSteps";
 import EvidenceSlots from "./EvidenceSlots";
 import Field from "./Field";
 import { IssuePicker } from "./SituationCards";
@@ -448,15 +449,7 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
         )}
 
         {error && <p className="error" role="alert">{error}</p>}
-        {loading && (
-          <div className="checking" role="status" aria-live="polite">
-            <span className="spin" aria-hidden="true" />
-            <div>
-              <strong>Reading the Consumer Protection Act…</strong>
-              <p>This takes a few seconds.</p>
-            </div>
-          </div>
-        )}
+        {loading && <CheckingSteps />}
       </div>
 
       <div className="nav">

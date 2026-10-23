@@ -1,4 +1,5 @@
 import Link from "next/link";
+import HeroFlow from "@/components/HeroFlow";
 import { SituationLinks } from "@/components/SituationCards";
 
 const HELPS = [
@@ -18,6 +19,7 @@ export default function Home() {
           <Link href="/new" className="cta">Start my complaint</Link>
           <Link href="/examples" className="btn-secondary">Explore an example</Link>
         </div>
+        <HeroFlow />
       </section>
 
       <section aria-labelledby="situations-h" className="block">

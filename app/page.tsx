@@ -1,5 +1,6 @@
 import Link from "next/link";
 import HeroFlow from "@/components/HeroFlow";
+import HeroStats from "@/components/HeroStats";
 import { SituationLinks } from "@/components/SituationCards";
 
 const HELPS = [
@@ -12,6 +13,7 @@ const HELPS = [
 export default function Home() {
   return (
     <main className="page home">
+      <div className="hero">
       <section className="intro">
         <h1>Customer support going in circles?</h1>
         <p className="sub">Organise your evidence, prepare your complaint, and know your next step.</p>
@@ -21,6 +23,8 @@ export default function Home() {
         </div>
         <HeroFlow />
       </section>
+      <HeroStats />
+      </div>
 
       <section aria-labelledby="situations-h" className="block">
         <h2 id="situations-h">What happened?</h2>

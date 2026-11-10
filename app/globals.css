@@ -930,3 +930,14 @@ button.situation { font: inherit; text-align: left; cursor: pointer; color: inhe
 
 /* Home hero: one column now that the side card is gone */
 @media (min-width: 1000px) { .hero { grid-template-columns: minmax(0, 720px); } }
+
+/* Home hero, right side: how it works, as a plain vertical list */
+.side-steps h2 { margin: 0 0 var(--s3); font-size: 1.15rem; color: var(--ink); }
+.side-steps ol { list-style: none; margin: 0; padding: 0; counter-reset: side; display: grid; gap: var(--s3); }
+.side-steps li { position: relative; padding-left: 52px; counter-increment: side; }
+.side-steps li::before { content: counter(side); position: absolute; left: 0; top: 0; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); font-weight: 650; border: 1px solid #cfe3e6; }
+.side-steps li:not(:last-child)::after { content: ""; position: absolute; left: 16px; top: 40px; bottom: calc(-1 * var(--s3) + 4px); width: 1px; background: var(--line); }
+.side-steps h3 { margin: 0 0 4px; font-size: 1.02rem; color: var(--ink); }
+.side-steps p { margin: 0; color: var(--body); font-size: .95rem; line-height: 1.6; max-width: 40ch; }
+@media (min-width: 1000px) { .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 380px); } .side-steps { padding-top: var(--s5); } }
+@media (max-width: 999px) { .side-steps { padding-top: var(--s2); } }

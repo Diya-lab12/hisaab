@@ -3,11 +3,11 @@ import { SituationLinks } from "@/components/SituationCards";
 import StatsBand from "@/components/StatsBand";
 import TrustSection from "@/components/TrustSection";
 
-const HELPS = [
-  { t: "Understand the issue", d: "Describe what happened and we check it against the Consumer Protection Act, 2019, in plain words." },
-  { t: "Build your case", d: "Add your screenshots and receipts. They stay on your device until you send your case to the advocate, and Claimatic reads the text in them to check they fit." },
-  { t: "Prepare your complaint", d: "We draft a legal notice you can edit and download. An advocate reviews and signs it before it is sent." },
-  { t: "Keep track of what happens next", d: "Record when it was sent, what the company replied, and set a follow-up date. Saved on this device." },
+const STEPS = [
+  { t: "Tell us what happened", d: "Write it in your own words. We check it against the Consumer Protection Act, 2019 first." },
+  { t: "See your case", d: "We show what we understood, whether the Act appears to cover it, and how much time you have left to file." },
+  { t: "Get your notice", d: "The notice is written from your story. Fill in any blanks and add your receipts and screenshots." },
+  { t: "An advocate signs it", d: "She reads your case, signs the notice and sends it to the company. You pay only if she takes your case." },
 ];
 
 export default function Home() {
@@ -20,6 +20,17 @@ export default function Home() {
           <p className="sub">Tell us what the company did wrong. We check it against the Consumer Protection Act, 2019 and prepare your notice. An advocate reviews every line, signs it and sends it for you.</p>
           <StoryBox />
         </section>
+        <aside className="side-steps" aria-labelledby="side-steps-h">
+          <h2 id="side-steps-h">How Claimatic works</h2>
+          <ol>
+            {STEPS.map((x) => (
+              <li key={x.t}>
+                <h3>{x.t}</h3>
+                <p>{x.d}</p>
+              </li>
+            ))}
+          </ol>
+        </aside>
       </div>
 
       <StatsBand />
@@ -28,18 +39,6 @@ export default function Home() {
         <h2 id="situations-h">Not sure how to start?</h2>
         <p className="help">Tap the closest one and we&apos;ll start your sentence for you. We ask for your personal details only at the end.</p>
         <SituationLinks />
-      </section>
-
-      <section aria-labelledby="how-h" className="block">
-        <h2 id="how-h">How Claimatic helps</h2>
-        <ol className="how">
-          {HELPS.map((h) => (
-            <li key={h.t}>
-              <h3>{h.t}</h3>
-              <p>{h.d}</p>
-            </li>
-          ))}
-        </ol>
       </section>
 
       <TrustSection />

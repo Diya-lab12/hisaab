@@ -1,10 +1,8 @@
-import Link from "next/link";
 import NoticePreview from "@/components/NoticePreview";
+import StoryBox from "@/components/StoryBox";
 import { SituationLinks } from "@/components/SituationCards";
 import StatsBand from "@/components/StatsBand";
 import TrustSection from "@/components/TrustSection";
-
-const STEPS = ["Describe what happened", "Law check", "Notice drafted", "Advocate signs"];
 
 const HELPS = [
   { t: "Understand the issue", d: "Describe what happened and we check it against the Consumer Protection Act, 2019, in plain words." },
@@ -20,16 +18,8 @@ export default function Home() {
         <section className="intro">
           <p className="eyebrow">Consumer Protection Act, 2019</p>
           <h1>AI-drafted, <span className="nowrap">advocate-signed</span> legal notices.</h1>
-          <p className="sub">Describe what a company did wrong. Claimatic checks it against the Act, drafts the notice, and an advocate reviews and signs it.</p>
-          <div className="actions">
-            <Link href="/new" className="cta">Start my complaint</Link>
-            <Link href="/examples" className="btn-secondary">See an example</Link>
-          </div>
-          <ol className="stepper-static" aria-label="How a case moves">
-            {STEPS.map((s, i) => (
-              <li key={s}><span className="ss-n">{i + 1}</span><span>{s}</span></li>
-            ))}
-          </ol>
+          <p className="sub">Tell us what a company did wrong. We check it against the Act first, then draft the notice, and an advocate reviews and signs it.</p>
+          <StoryBox />
         </section>
         <NoticePreview />
       </div>
@@ -37,8 +27,8 @@ export default function Home() {
       <StatsBand />
 
       <section aria-labelledby="situations-h" className="block">
-        <h2 id="situations-h">What happened?</h2>
-        <p className="help">Pick the closest one to start. We&apos;ll ask for your personal details later, only when they&apos;re needed.</p>
+        <h2 id="situations-h">Not sure how to start?</h2>
+        <p className="help">Tap the closest one and we&apos;ll start your sentence for you. We ask for your personal details only at the end.</p>
         <SituationLinks />
       </section>
 

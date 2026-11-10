@@ -24,7 +24,6 @@ export default function SiteFooter() {
           </ul>
         </nav>
       </div>
-      <p className="sf-disclaimer">Claimatic gives general information and not legal advice. An advocate reviews every notice before it is sent.</p>
     </footer>
   );
 }

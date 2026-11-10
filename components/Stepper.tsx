@@ -1,4 +1,4 @@
-export const STEPS = ["The problem", "Evidence", "Your details", "Strengthen", "Review"] as const;
+export const STEPS = ["Your story", "Your case", "Your notice", "Evidence", "Send"] as const;
 
 export default function Stepper({ current, onJump }: { current: number; onJump: (i: number) => void }) {
   const pct = ((current + 1) / STEPS.length) * 100;

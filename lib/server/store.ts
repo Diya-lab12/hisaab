@@ -97,3 +97,11 @@ export async function deleteSubmission(id: string): Promise<void> {
   delete all[id];
   await writeFile(all);
 }
+
+/** Counts a hit for a rate limit. Uses the shared database when it is connected, and returns null when it isn't. */
+export async function bumpCounter(key: string, windowSec: number): Promise<number | null> {
+  if (!redisConfigured()) return null;
+  const n = Number(await cmd(["INCR", key]));
+  if (n === 1) await cmd(["EXPIRE", key, windowSec]);
+  return n;
+}

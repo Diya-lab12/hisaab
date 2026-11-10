@@ -16,7 +16,7 @@ export type EvidenceImage = {
   /** Which checklist item it supports. */
   slot: string;
   /** What the on-device text reader found. Never leaves the browser. */
-  review?: { state: "reading" } | { state: "done"; check: PictureCheck } | { state: "failed" };
+  review?: { state: "reading" } | { state: "done"; check: PictureCheck; /** Checklist items the text suggests this picture supports. */ slots?: string[] } | { state: "failed" };
   /** The person chose to keep it after a warning. */
   kept?: boolean;
   /** An optional AI look, only if the person asked for it for this picture. */

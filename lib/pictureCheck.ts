@@ -130,3 +130,22 @@ export function checkPicture(rawText: string, slot: string, ctx: CaseContext): P
   if (hits.length === 1 || amountOk || company) return { status: "weak", headline: `This might be ${phrase}, but we couldn't be sure.`, found };
   return { status: "mismatch", headline: `We read text in this picture, but nothing that looks like ${phrase}. Is it the right picture?`, found };
 }
+
+/**
+ * Which checklist items a picture seems to support, from the text read on the device. It needs at least two matching
+ * words, so one stray word doesn't tick an item. A picture with almost no text is taken to be a photo.
+ * This is an estimate, and the meter that uses it says so.
+ */
+export function matchSlots(rawText: string, issue: string): string[] {
+  const t = norm(rawText);
+  const few = t.trim().length < 25;
+  const out: string[] = [];
+  for (const item of evidenceFor(issue)) {
+    if (PHOTO_SLOTS.has(item.id)) {
+      if (few) out.push(item.id);
+      continue;
+    }
+    if ((WORDS[item.id] ?? []).filter((w) => t.includes(w)).length >= 2) out.push(item.id);
+  }
+  return out;
+}

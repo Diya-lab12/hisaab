@@ -3,7 +3,7 @@ import { issueLabel } from "./issues";
 import { answerLines, resolutionLabel } from "./questions";
 import { LEGAL_SOURCES } from "./legal-sources";
 
-export function buildSystemPrompt(proceed = false): string {
+export function buildSystemPrompt(proceed = false, blanks = false): string {
   const list = LEGAL_SOURCES.map((s) => `- id "${s.id}": ${s.summary}`).join("\n");
   return `You are a consumer-law assistant for India. You tell an ordinary person whether the Consumer Protection Act, 2019 covers their complaint.
 
@@ -29,7 +29,9 @@ STYLE
 - "steps" is an ordered script of 4 to 6 actions. It must say that a legal notice is a smart first step but NOT a legal requirement before filing a complaint.
 - "notice_body" is numbered paragraphs ("1.", "2.", "3." each on its own line) in the advocate's voice: always "my client", never "I". It states the facts using the details given (amounts, dates, what the company said), the law that was broken, and ends with a paragraph saying my client requests the resolution they asked for (for example a refund of the exact amount). Do not state that the client is legally entitled to a particular remedy. It must NOT contain a greeting, a deadline, a signature, a date, the client's name or address, or any placeholder in square brackets. The app adds the addressee, the deadline and the advocate's block.
 
-${proceed ? "\nTHE PERSON CHOSE TO CONTINUE WITHOUT MORE DETAIL. Never return need_more_info. Return covered or not_covered, and draft the notice using only the facts given.\n" : ""}
+${blanks ? `
+SOME FACTS MAY BE MISSING. The app fills them in later. Where the notice needs a fact that the complaint does not give, write exactly one of these markers in its place, never a guess: {{amount}} (the amount), {{incident_date}} (a date), {{order_ref}} (an order or invoice number). Use a marker at most once for each fact, and only when that fact is truly missing.
+` : ""}${proceed ? "\nTHE PERSON CHOSE TO CONTINUE WITHOUT MORE DETAIL. Never return need_more_info. Return covered or not_covered, and draft the notice using only the facts given.\n" : ""}
 SECTIONS YOU MAY CITE
 ${list}
 
@@ -66,9 +68,9 @@ export function buildUserMessage(c: {
   const wanted = resolutionLabel(c.resolution, c.resolutionOther);
   const extra = answerLines(c.issueType ?? "", c.answers);
   return `<complaint>
-${kind ? `Type of complaint chosen by the person (may be imprecise, trust the facts over it): ${kind}\n` : ""}Company: ${c.company}
-Amount paid: ${formatRupees(parseAmount(c.amount))}
-Date: ${formatDate(c.incidentDate)}
+${kind ? `Type of complaint chosen by the person (may be imprecise, trust the facts over it): ${kind}\n` : ""}Company: ${c.company || "not stated"}
+Amount paid: ${parseAmount(c.amount) > 0 ? formatRupees(parseAmount(c.amount)) : "not stated"}
+Date: ${c.incidentDate && !isNaN(Date.parse(c.incidentDate)) ? formatDate(c.incidentDate) : "not stated"}
 ${wanted ? `Requested resolution: ${wanted}\n` : ""}What happened: ${c.description}${extra.length ? "\nMore details the person gave:\n" + extra.map((l) => `- ${l.label} ${l.value}`).join("\n") : ""}
 </complaint>`;
 }

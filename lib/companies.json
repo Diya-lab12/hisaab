@@ -1,0 +1,258 @@
+{
+  "_todo": "Extend this list. Only add details read from the company's own Terms, Contact or Grievance page, with the URL in sources. A null field shows as 'the advocate will confirm'.",
+  "companies": [
+    {
+      "brand": "Flipkart",
+      "aliases": [
+        "flipkart.com"
+      ],
+      "legalName": "Flipkart Internet Private Limited",
+      "registeredOffice": "Buildings Alyssa, Begonia & Clover, Embassy Tech Village, Outer Ring Road, Devarabeesanahalli Village, Bengaluru - 560103, Karnataka, India",
+      "grievanceEmail": "grievance.officer@flipkart.com",
+      "sources": [
+        "https://www.flipkart.com/pages/terms"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "BigBasket",
+      "aliases": [
+        "big basket",
+        "bigbasket.com"
+      ],
+      "legalName": "Innovative Retail Concepts Pvt Ltd",
+      "registeredOffice": null,
+      "grievanceEmail": null,
+      "sources": [
+        "https://www.bigbasket.com/fp/web/terms-and-conditions/"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "Vi",
+      "aliases": [
+        "vodafone idea",
+        "vodafone",
+        "idea"
+      ],
+      "legalName": "Vodafone Idea Limited",
+      "registeredOffice": "Suman Tower, Plot No. 18, Sector-11, Gandhinagar-382 011, Gujarat",
+      "grievanceEmail": "grievanceofficer@vodafoneidea.com",
+      "sources": [
+        "https://www.myvi.in/terms-of-use"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "Airtel",
+      "aliases": [
+        "bharti airtel",
+        "airtel thanks"
+      ],
+      "legalName": "Bharti Airtel Limited",
+      "registeredOffice": "Airtel Center, Plot No.16, Udhyog Vihar, Phase IV, Gurugram - 122015",
+      "grievanceEmail": null,
+      "sources": [
+        "https://www.airtel.in/mobile/terms-conditions"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "Decathlon",
+      "aliases": [
+        "decathlon india"
+      ],
+      "legalName": "Decathlon Sports India Private Limited",
+      "registeredOffice": "Survey No. 78/10 A20- Chikkajala Village, Bellary Road, (PO Box No. 1, Bettahalsoor Post Office), Bangalore - 562157, Karnataka, India",
+      "grievanceEmail": "care.india@decathlon.com",
+      "sources": [
+        "https://www.decathlon.in/page/decathlon-terms-and-condition"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "Lenskart",
+      "aliases": [
+        "lenskart.com"
+      ],
+      "legalName": "Lenskart Solutions Limited",
+      "registeredOffice": "Plot No. 151, Okhla Industrial Estate, Phase-III, New Delhi-110020",
+      "grievanceEmail": "Customergrievances@lenskart.in",
+      "sources": [
+        "https://www.lenskart.com/terms-conditions",
+        "https://www.lenskart.com/grievance-redressal"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "boAt",
+      "aliases": [
+        "boat",
+        "boat lifestyle"
+      ],
+      "legalName": "Imagine Marketing Limited",
+      "registeredOffice": "Unit no. 204 & 205, 2nd floor, D-wing & E-wing, Corporate Avenue, Andheri Ghatkopar Link Road, Mumbai 400093, Maharashtra, India",
+      "grievanceEmail": null,
+      "sources": [
+        "https://www.boat-lifestyle.com/pages/terms-of-use"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "PhonePe",
+      "aliases": [
+        "phone pe"
+      ],
+      "legalName": "PhonePe Limited",
+      "registeredOffice": "Office-2, Floor 5, Wing A, Block A, Salarpuria Softzone, Bellandur Village, Varthur Hobli, Outer Ring Road, Bangalore South, Bangalore, Karnataka, India, 560103",
+      "grievanceEmail": null,
+      "sources": [
+        "https://www.phonepe.com/grievance-policy/app",
+        "https://www.phonepe.com/contact-us/"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "Domino's",
+      "aliases": [
+        "dominos",
+        "domino",
+        "jubilant foodworks",
+        "domino's"
+      ],
+      "legalName": "Jubilant FoodWorks Limited",
+      "registeredOffice": "Plot No. 1A, Sector - 16A, Noida - 201301, U.P., India",
+      "grievanceEmail": null,
+      "sources": [
+        "https://tnc.dominos.co.in/",
+        "https://www.jubilantfoodworks.com/investors/investors-contact/registered-corporate-office"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "Meesho",
+      "aliases": [
+        "meesho.com"
+      ],
+      "legalName": "Meesho Technologies Private Limited",
+      "registeredOffice": null,
+      "grievanceEmail": "legalsupport@meesho.com",
+      "sources": [
+        "https://www.meesho.com/legal/terms-conditions"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "Ola",
+      "aliases": [
+        "ola cabs",
+        "olacabs",
+        "ola cab"
+      ],
+      "legalName": "ANI Technologies Private Limited",
+      "registeredOffice": null,
+      "grievanceEmail": null,
+      "sources": [
+        "https://corporate.olacabs.com/termsOfService.html"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "Uber",
+      "aliases": [
+        "uber india"
+      ],
+      "legalName": "Uber India Systems Private Limited",
+      "registeredOffice": null,
+      "grievanceEmail": "grievanceredressaloffice@uber.com",
+      "sources": [
+        "https://www.uber.com/legal/en/document/?name=general-terms-of-use&country=india&lang=en",
+        "https://help.uber.com/riders/article/grievance-redressal?nodeId=c04af4d0-930c-4098-b099-5f6f2a2fff84"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "Rapido",
+      "aliases": [
+        "rapido bike"
+      ],
+      "legalName": "Roppen Transportation Services Private Limited",
+      "registeredOffice": null,
+      "grievanceEmail": null,
+      "sources": [
+        "https://rapido.bike/Terms"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "MakeMyTrip",
+      "aliases": [
+        "make my trip",
+        "mmt"
+      ],
+      "legalName": "MakeMyTrip (India) Limited",
+      "registeredOffice": null,
+      "grievanceEmail": "grievanceofficer@makemytrip.com",
+      "sources": [
+        "https://www.makemytrip.com/legal/in/eng/user_agreement.html"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "Cleartrip",
+      "aliases": [
+        "clear trip"
+      ],
+      "legalName": "Cleartrip Private Limited",
+      "registeredOffice": null,
+      "grievanceEmail": null,
+      "sources": [
+        "https://www.cleartrip.com/terms"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "IndiGo",
+      "aliases": [
+        "indigo airlines",
+        "interglobe aviation",
+        "6e"
+      ],
+      "legalName": "InterGlobe Aviation Limited",
+      "registeredOffice": "Upper Ground Floor, Thapar House, Gate No. 2, Western Wing, 124 Janpath, New Delhi - 110001, India",
+      "grievanceEmail": "Customer.experience@goindigo.in",
+      "sources": [
+        "https://www.goindigo.in/contact-us.html",
+        "https://www.goindigo.in/information/terms-and-conditions.html"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "Air India",
+      "aliases": [
+        "airindia"
+      ],
+      "legalName": "Air India Limited",
+      "registeredOffice": null,
+      "grievanceEmail": null,
+      "sources": [
+        "https://www.airindia.com/in/en/terms-and-condition.html"
+      ],
+      "checkedOn": "2026-11-10"
+    },
+    {
+      "brand": "Paytm",
+      "aliases": [
+        "one97",
+        "one97 communications"
+      ],
+      "legalName": "One97 Communications Limited",
+      "registeredOffice": "First Floor Devika Tower, Nehru Place, New Delhi - 110019",
+      "grievanceEmail": null,
+      "sources": [
+        "https://paytm.com/company/terms-and-conditions"
+      ],
+      "checkedOn": "2026-11-10"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import EvidenceDialog from "./EvidenceDialog";
 import EvidenceSlots, { type EvidenceChange } from "./EvidenceSlots";
 import RealDecisions from "./RealDecisions";
@@ -449,6 +449,7 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
   const [problem, setProblem] = useState<{ code: string; text: string } | null>(null);
   const [checking, setChecking] = useState(false);
   const [again, setAgain] = useState(false);
+  const wantSend = useSearchParams().get("send") === "1"; // arriving from the flow's last step
   const [forgetting, setForgetting] = useState<"ask" | "busy" | null>(null);
   const [forgetError, setForgetError] = useState<string | null>(null);
   const [addons, setAddons] = useState<string[]>([]);
@@ -501,7 +502,7 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
   }
 
   return (
-    <details className="advocate-panel" key={sub?.ref ?? "new"} open={Boolean(sub)}>
+    <details className="advocate-panel" key={sub?.ref ?? "new"} open={Boolean(sub) || wantSend}>
       <summary>
         <span className="sum-t">Send to a lawyer for review</span>
         <span className="sum-d">{ADVOCATE.name}, Advocate · {ADVOCATE.council}</span>

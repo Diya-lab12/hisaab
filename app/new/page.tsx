@@ -2,7 +2,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import ComplaintWizard from "@/components/ComplaintWizard";
+import StoryFlow from "@/components/StoryFlow";
 import { useCase } from "@/lib/cases";
 import { cleanIssue } from "@/lib/issues";
 import { useHydrated } from "@/lib/hydrated";
@@ -25,7 +25,7 @@ function Loader() {
     );
   }
   // The key restarts the form when you open a different case or pick a different situation.
-  return <ComplaintWizard key={existing?.id ?? issue ?? "blank"} existing={existing} initial={existing ? existing.input : issue ? { issueType: issue } : undefined} />;
+  return <StoryFlow key={existing?.id ?? issue ?? "blank"} existing={existing} issue={issue || undefined} />;
 }
 
 export default function NewComplaint() {

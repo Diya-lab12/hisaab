@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import NoticeLetterhead from "./NoticeLetterhead";
 import RealDecisions from "./RealDecisions";
 import { getIssue } from "@/lib/issues";
 import type { Example } from "@/lib/examples";
@@ -35,7 +36,7 @@ export default function ExampleWorkspace({ example: e }: { example: Example }) {
       </section>
 
       <section className="ws-card" aria-labelledby="ex-ev">
-        <h2 id="ex-ev">Sample evidence records</h2>
+        <h2 id="ex-ev">Sample evidence records (example)</h2>
         <p className="fine">Example records only. In your own case you add your real pictures.</p>
         <ul className="slots">
           {e.evidence.map((ev) => (
@@ -43,7 +44,7 @@ export default function ExampleWorkspace({ example: e }: { example: Example }) {
               <div className="slot-head">
                 <div>
                   <strong>{ev.label}</strong>
-                  <span className={`chip ${ev.state === "have" ? "added" : "missing"}`}>{ev.state === "have" ? "Added (example)" : "Missing (example)"}</span>
+                  <span className={`chip ${ev.state === "have" ? "added" : "missing"}`}>{ev.state === "have" ? "Added" : "Missing"}</span>
                 </div>
               </div>
               <p className="slot-why">{ev.note}</p>
@@ -60,9 +61,11 @@ export default function ExampleWorkspace({ example: e }: { example: Example }) {
       <section className="ws-card" aria-labelledby="ex-comp">
         <h2 id="ex-comp">A sample legal notice you can edit</h2>
         <p className="fine">Try editing it. Changes here are not saved. In your own case, your details and facts are filled in for you.</p>
-        <div className="paper">
+        <div className="a4">
+          <NoticeLetterhead />
           <label className="sr-only" htmlFor="ex-text">Sample legal notice, editable</label>
           <textarea id="ex-text" value={text} onChange={(ev) => setText(ev.target.value)} rows={18} spellCheck />
+          <span className="a4-watermark" aria-hidden="true">Illustrative example</span>
         </div>
         {text !== e.complaint && <button type="button" className="link" onClick={() => setText(e.complaint)}>Reset the sample</button>}
       </section>

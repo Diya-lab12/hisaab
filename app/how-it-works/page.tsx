@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ADVOCATE } from "@/lib/advocate";
 import { ADDONS, TIERS, rupees } from "@/lib/pricing";
 
-export const metadata = { title: "How it works and who reviews it · Claimatic" };
+export const metadata = { title: "How it works and who reviews it" };
 
 export default function HowItWorks() {
   return (

@@ -1,5 +1,6 @@
 "use client";
 import { useId, useMemo, useState } from "react";
+import DataNote from "./DataNote";
 import { MAX_PER_SCOPE, addEvidence, forScope, removeEvidence, summarise, updateEvidence, useAllEvidence, type EvidenceImage } from "@/lib/evidence";
 import { OTHER_SLOT, evidenceFor } from "@/lib/evidenceItems";
 import { evidenceSummary, type CaseRecord } from "@/lib/cases";
@@ -189,27 +190,7 @@ export default function EvidenceSlots({
 
       {problems.length > 0 && <ul className="problems" role="alert">{problems.map((p, i) => <li key={i}>{p}</li>)}</ul>}
 
-      <aside className="private" aria-label="Privacy">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-          <rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
-        </svg>
-        <div>
-          <p><strong>Stays on this device.</strong> Pictures aren&apos;t uploaded or saved, and are cleared when you close the tab. Claimatic reads the text in them on your device. A picture leaves only if you choose &ldquo;Check with AI&rdquo; for it, or when you send your case to the advocate.</p>
-          <details>
-            <summary>What to hide first</summary>
-            <ul>
-              <li>Other people&apos;s faces and names.</li>
-              <li>Middle digits of card numbers, your UPI ID, OTPs and passwords.</li>
-              <li>On a bank statement, crop to the one payment.</li>
-              <li>Anything that shows where you live, like a street sign.</li>
-            </ul>
-          </details>
-          <details>
-            <summary>How the on-device check works</summary>
-            <p className="fine">A small text-reading program is downloaded once when you add your first picture (a few MB). Your picture is read by that program inside your browser. It checks for words, amounts and dates that fit the item. It can miss things or get things wrong, so it only warns you.</p>
-          </details>
-        </div>
-      </aside>
+      <DataNote line="Pictures stay on this device until you send your case to the advocate." />
     </div>
   );
 }

@@ -19,7 +19,9 @@ import {
 import { ROUTES, SECTOR } from "@/lib/escalation";
 import { ADVOCATE } from "@/lib/advocate";
 import { forgetRequest, sendToAdvocate, syncAdvocate } from "@/lib/advocateClient";
+import NoticeLetterhead from "./NoticeLetterhead";
 import PayBox from "./PayBox";
+import PdfPreview from "./PdfPreview";
 import ExplainInLanguage from "./ExplainInLanguage";
 import CaseProgress from "./CaseProgress";
 import { ADDONS, TIERS, quote, rupees } from "@/lib/pricing";
@@ -344,6 +346,7 @@ function ComplaintSection({ rec, pictureCount, onOpenEvidence }: { rec: CaseReco
   const all = useAllEvidence();
   const mine = useMemo(() => forScope(all, rec.id), [all, rec.id]);
   const edited = text !== original;
+  const reviewed = rec.submission?.lastStatus === "approved" || rec.submission?.lastStatus === "sent";
 
   useEffect(() => {
     const el = area.current;
@@ -414,14 +417,17 @@ function ComplaintSection({ rec, pictureCount, onOpenEvidence }: { rec: CaseReco
       </p>
       <div className="toolbar" role="group" aria-label="Notice actions">
         <button type="button" onClick={copy}>{copied ? "Copied!" : "Copy"}</button>
+        <PdfPreview text={text} />
         <button type="button" onClick={() => make("pdf")} disabled={busy !== null}>{busy === "pdf" ? "Making PDF…" : "Download PDF"}</button>
         <button type="button" onClick={() => make("docx")} disabled={busy !== null}>{busy === "docx" ? "Making Word file…" : "Download Word"}</button>
         {edited && <button type="button" className="quiet" onClick={() => { onChange(original); persist(original); }}>Undo my edits</button>}
       </div>
       {msg && <p className="callout warn" role="status">{msg}</p>}
-      <div className="paper">
+      <div className="a4">
+        <NoticeLetterhead />
         <label className="sr-only" htmlFor="notice-text">Notice, editable</label>
         <textarea id="notice-text" ref={area} value={text} onChange={(e) => onChange(e.target.value)} onBlur={() => persist(text)} rows={16} spellCheck />
+        {!reviewed && <span className="a4-watermark" aria-hidden="true">Draft, not yet reviewed</span>}
       </div>
 
       <AdvocatePanel rec={rec} text={text} images={packImages()} pictureCount={pictureCount} onOpenEvidence={onOpenEvidence} onDownload={make} busy={busy} />

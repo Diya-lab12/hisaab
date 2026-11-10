@@ -4,6 +4,12 @@ import { notFound } from "next/navigation";
 import ExampleWorkspace from "@/components/ExampleWorkspace";
 import { EXAMPLES, getExample } from "@/lib/examples";
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const e = getExample(slug);
+  return { title: e ? `Example: ${e.title}` : "Example case" };
+}
+
 export function generateStaticParams() {
   return EXAMPLES.map((e) => ({ slug: e.slug }));
 }

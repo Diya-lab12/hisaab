@@ -78,7 +78,7 @@ Yours faithfully,
 
 (The advocate's name, enrolment number and signature would appear here after review.)`,
     nextAction:
-      "Add the bank statement and the 29 March chat, then send the complaint to the company's grievance contact. Record that you sent it, and set a follow-up date.",
+      "Add the bank statement and the 29 March chat, then send your case to the advocate to review and sign. Once the notice has gone out, record it and set a follow-up date.",
   },
   {
     slug: "appliance-warranty",
@@ -138,7 +138,7 @@ Yours faithfully,
 
 (The advocate's name, enrolment number and signature would appear here after review.)`,
     nextAction:
-      "Add screenshots of the two service requests, then send the complaint. Set a follow-up date so you remember to check for a reply.",
+      "Add screenshots of the two service requests, then send your case to the advocate to review and sign. Set a follow-up date so you remember to check for a reply.",
   },
   {
     slug: "subscription-charge",
@@ -195,7 +195,7 @@ Yours faithfully,
 
 (The advocate's name, enrolment number and signature would appear here after review.)`,
     nextAction:
-      "Add the sign-up terms and the 20 February chat. Then send the complaint, and set a follow-up date for the reply.",
+      "Add the sign-up terms and the 20 February chat. Then send your case to the advocate to review and sign, and set a follow-up date for the reply.",
   },
 ];
 

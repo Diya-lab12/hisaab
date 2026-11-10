@@ -88,9 +88,10 @@ export function checkField(key: FieldKey, input: ComplaintInput, now = new Date(
   }
 }
 
-export const STEP_FIELDS: Record<"complaint" | "details", FieldKey[]> = {
-  complaint: ["issueType", "company", "companyEmail", "amount", "incidentDate", "resolution", "resolutionOther", "description"],
+export const STEP_FIELDS: Record<"complaint" | "details" | "strengthen", FieldKey[]> = {
+  complaint: ["issueType", "company", "amount", "incidentDate", "resolution", "resolutionOther", "description"],
   details: ["name", "address", "contact"],
+  strengthen: ["companyEmail"],
 };
 
 /** Feedback for the answers to the questions that change with the problem. These never block progress, except impossible dates. */

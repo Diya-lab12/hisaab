@@ -2,7 +2,7 @@ import Link from "next/link";
 import IssueIcon from "@/components/IssueIcon";
 import { EXAMPLES } from "@/lib/examples";
 
-export const metadata = { title: "Example cases · Claimatic" };
+export const metadata = { title: "Example cases" };
 
 export default function Examples() {
   return (

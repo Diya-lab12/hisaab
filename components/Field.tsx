@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-type Bind = { id: string; "aria-invalid": boolean; "aria-describedby": string };
+type Bind = { id: string; "aria-invalid": boolean; "aria-describedby": string; "aria-required"?: boolean };
 
 /** A labelled field with live feedback: hint, error, advice note and a tick when valid. */
 export default function Field({
@@ -10,6 +10,7 @@ export default function Field({
   error,
   note,
   valid,
+  required,
   children,
 }: {
   id: string;
@@ -18,6 +19,7 @@ export default function Field({
   error?: string | null;
   note?: string | null;
   valid?: boolean;
+  required?: boolean;
   children: (bind: Bind) => ReactNode;
 }) {
   const describedBy = `${id}-msg`;
@@ -25,13 +27,14 @@ export default function Field({
     <div className={`field ${error ? "has-error" : ""} ${valid ? "is-valid" : ""}`}>
       <label htmlFor={id}>
         {label}
+        {required && <span className="req" aria-hidden="true"> *</span>}
         {valid && (
           <svg className="tick" width="16" height="16" viewBox="0 0 16 16" aria-label="Looks good" role="img">
             <path d="M3 8.5l3.2 3L13 4.5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}
       </label>
-      {children({ id, "aria-invalid": Boolean(error), "aria-describedby": describedBy })}
+      {children({ id, "aria-invalid": Boolean(error), "aria-describedby": describedBy, ...(required ? { "aria-required": true } : {}) })}
       <p id={describedBy} className={error ? "msg error" : note ? "msg note" : "msg"} role={error ? "alert" : undefined}>
         {error ?? note ?? hint}
       </p>

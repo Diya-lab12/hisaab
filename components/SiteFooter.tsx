@@ -16,7 +16,7 @@ export default function SiteFooter() {
       <div className="site-footer-in">
         <div className="sf-brand">
           <Logo />
-          <p>AI-drafted legal notices, reviewed and signed by {ADVOCATE.name}, {ADVOCATE.title}, {ADVOCATE.council}, Enrolment No. {ADVOCATE.enrolment}.</p>
+          <p>Consumer complaint notices, reviewed and signed by {ADVOCATE.name}, {ADVOCATE.title}, {ADVOCATE.council}, Enrolment No. {ADVOCATE.enrolment}.</p>
         </div>
         <nav aria-label="Footer" className="sf-nav">
           <ul>

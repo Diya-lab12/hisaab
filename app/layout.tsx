@@ -12,13 +12,13 @@ const paper = Source_Serif_4({ subsets: ["latin"], variable: "--font-paper", dis
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://claimatic.vercel.app"),
-  title: { default: "Claimatic: AI-drafted, advocate-signed legal notices", template: "%s · Claimatic" },
+  title: { default: "Claimatic: consumer complaint notices signed by an advocate", template: "%s · Claimatic" },
   description: "Claimatic checks whether the Consumer Protection Act, 2019 covers your complaint, drafts a legal notice, and sends it to an advocate who reviews and signs it.",
   openGraph: {
     type: "website",
     siteName: "Claimatic",
-    title: "Claimatic: AI-drafted, advocate-signed legal notices",
-    description: "Check whether the Consumer Protection Act, 2019 covers your complaint. An advocate reviews and signs the notice.",
+    title: "Claimatic: consumer complaint notices signed by an advocate",
+    description: "Send a legal notice for your consumer complaint. An advocate reviews and signs it.",
   },
   twitter: { card: "summary_large_image" },
 };

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Claimatic: AI-drafted, advocate-signed legal notices";
+export const alt = "Claimatic: consumer complaint notices signed by an advocate";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -15,8 +15,8 @@ export default function Image() {
           <div style={{ fontSize: 60, fontWeight: 700, color: "#075566", letterSpacing: -1 }}>Claimatic</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          <div style={{ fontSize: 76, fontWeight: 700, lineHeight: 1.08, maxWidth: 940 }}>AI-drafted, advocate-signed legal notices.</div>
-          <div style={{ fontSize: 34, color: "#4d5a69" }}>Check your complaint against the Consumer Protection Act, 2019.</div>
+          <div style={{ fontSize: 76, fontWeight: 700, lineHeight: 1.08, maxWidth: 940 }}>Consumer complaint? Get a notice signed by an advocate.</div>
+          <div style={{ fontSize: 34, color: "#4d5a69" }}>Under the Consumer Protection Act, 2019.</div>
         </div>
         <div style={{ height: 8, width: 160, background: "#8a6a2f" }} />
       </div>

@@ -1,4 +1,4 @@
-import NoticePreview from "@/components/NoticePreview";
+import AdvocateCard from "@/components/AdvocateCard";
 import StoryBox from "@/components/StoryBox";
 import { SituationLinks } from "@/components/SituationCards";
 import StatsBand from "@/components/StatsBand";
@@ -17,11 +17,11 @@ export default function Home() {
       <div className="hero">
         <section className="intro">
           <p className="eyebrow">Consumer Protection Act, 2019</p>
-          <h1>AI-drafted, <span className="nowrap">advocate-signed</span> legal notices.</h1>
-          <p className="sub">Tell us what a company did wrong. We check it against the Act first, then draft the notice, and an advocate reviews and signs it.</p>
+          <h1>Consumer complaint? Get a legal notice <span className="nowrap">signed by an advocate.</span></h1>
+          <p className="sub">Tell us what the company did wrong. We check it against the Consumer Protection Act, 2019 and prepare your notice. An advocate reviews every line, signs it and sends it for you.</p>
           <StoryBox />
         </section>
-        <NoticePreview />
+        <AdvocateCard />
       </div>
 
       <StatsBand />

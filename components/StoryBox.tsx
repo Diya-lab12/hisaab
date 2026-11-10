@@ -59,7 +59,7 @@ export default function StoryBox() {
         <Link href="/examples" className="link">or see an example</Link>
       </div>
       <ul className="proof" aria-label="Why you can trust the check">
-        <li><strong>Verified sections only.</strong> The AI can only cite sections checked against the Act.</li>
+        <li><strong>Verified sections only.</strong> We cite only sections that exist in the Act, checked one by one.</li>
         <li><strong>Real decisions, including losses.</strong> You see what happened in similar cases, good and bad.</li>
         <li><strong>Signed by a named advocate.</strong> {ADVOCATE.name}, Enrolment No. {ADVOCATE.enrolment}.</li>
       </ul>

@@ -94,7 +94,7 @@ export function checkPicture(rawText: string, slot: string, ctx: CaseContext): P
 
   if (!readable) {
     return PHOTO_SLOTS.has(slot)
-      ? { status: "photo", headline: "This looks like a photo. Claimatic can't judge photos on your device. You can ask for an AI check if you want a second look.", found: [] }
+      ? { status: "photo", headline: "This looks like a photo. Claimatic can't judge photos on your device.", found: [] }
       : { status: "unreadable", headline: `We couldn't read any text in this picture, so we can't tell if it shows ${phrase}. Check it's the right one.`, found: [] };
   }
 

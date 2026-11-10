@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import type { PictureCheck } from "./pictureCheck";
 
 // Evidence pictures live ONLY in this browser tab's memory. They are never uploaded, never
-// written to localStorage or sessionStorage, and never sent to the AI. Reloading or closing the
+// written to localStorage or sessionStorage, and never sent anywhere. Reloading or closing the
 // tab clears them, so a reopened case asks you to add them again.
 
 export type EvidenceImage = {
@@ -19,8 +19,6 @@ export type EvidenceImage = {
   review?: { state: "reading" } | { state: "done"; check: PictureCheck; /** Checklist items the text suggests this picture supports. */ slots?: string[] } | { state: "failed" };
   /** The person chose to keep it after a warning. */
   kept?: boolean;
-  /** An optional AI look, only if the person asked for it for this picture. */
-  ai?: { state: "asking" } | { state: "done"; description: string; matches: "yes" | "no" | "unsure"; reason: string } | { state: "failed"; message: string };
 };
 
 export const MAX_PER_SCOPE = 12;

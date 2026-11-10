@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ADVOCATE } from "@/lib/advocate";
 import { ADDONS, TIERS, rupees } from "@/lib/pricing";
 
-/** Who reviews your notice, what the AI does, and what it costs. Shared by the home page and the how-it-works page. */
+/** Who reviews your notice, how your case is checked, and what it costs. Shared by the home page and the how-it-works page. */
 export default function TrustSection() {
   return (
     <section aria-labelledby="trust-h" className="block trust">
@@ -16,12 +16,12 @@ export default function TrustSection() {
         </article>
 
         <article className="trust-card">
-          <h3>What the AI does, and what it doesn&apos;t</h3>
+          <h3>How your case is checked</h3>
           <ul>
-            <li>Reads your account and says whether the Consumer Protection Act, 2019 appears to cover it.</li>
-            <li>Names only law sections from a list checked against the Act. Others are deleted automatically.</li>
-            <li>Drafts the notice from your facts. It can make mistakes, so read every line.</li>
-            <li>Does not decide your case or promise an outcome.</li>
+            <li>Your words are matched against the Consumer Protection Act, 2019 to see whether it appears to cover your complaint.</li>
+            <li>Only sections that exist in the Act are ever cited, checked one by one.</li>
+            <li>The notice is built from the facts you give. Anything you didn&apos;t say is left as a blank for you to fill in.</li>
+            <li>This first check is automatic and can be wrong. The advocate makes the real call, and nothing is sent without her signature.</li>
           </ul>
         </article>
 

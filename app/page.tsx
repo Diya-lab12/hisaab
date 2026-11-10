@@ -1,4 +1,3 @@
-import AdvocateCard from "@/components/AdvocateCard";
 import StoryBox from "@/components/StoryBox";
 import { SituationLinks } from "@/components/SituationCards";
 import StatsBand from "@/components/StatsBand";
@@ -21,7 +20,6 @@ export default function Home() {
           <p className="sub">Tell us what the company did wrong. We check it against the Consumer Protection Act, 2019 and prepare your notice. An advocate reviews every line, signs it and sends it for you.</p>
           <StoryBox />
         </section>
-        <AdvocateCard />
       </div>
 
       <StatsBand />

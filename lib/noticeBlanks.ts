@@ -9,7 +9,7 @@ import type { Company } from "./companies";
 const TOKEN = /\{\{([a-z_]+)\}\}/g;
 export const blank = (k: string) => `{{${k}}}`;
 
-/** Keeps only blanks we know about. Anything else the AI might write is dropped, so a stray marker can't appear. */
+/** Keeps only blanks we know about. Any other marker is dropped, so a stray marker can't appear. */
 export function cleanTokens(text: string): string {
   return text.replace(TOKEN, (m, k: string) => (BLANK_KEYS.includes(k) ? m : "")).replace(/₹NaN/g, blank("amount")).replace(/Invalid Date/g, blank("incident_date"));
 }
@@ -50,7 +50,7 @@ function addressee(company: Company | null, brand: string): string[] {
 }
 
 /**
- * The notice, built in code from the story's facts and the AI's numbered paragraphs.
+ * The notice, built in code from the story's facts and numbered paragraphs.
  * Every fact the story doesn't give becomes a blank, so nothing is invented.
  */
 export function buildNoticeTemplate(facts: Facts, company: Company | null, noticeBody: string, sectionIds: string[]): string {

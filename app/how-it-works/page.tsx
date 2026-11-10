@@ -21,20 +21,20 @@ export default function HowItWorks() {
       </section>
 
       <section className="ws-card" aria-labelledby="what">
-        <h2 id="what">What the AI does, and what it doesn&apos;t</h2>
+        <h2 id="what">How your case is checked</h2>
         <ul>
-          <li>It reads what you wrote and says whether the Consumer Protection Act, 2019 appears to cover it.</li>
-          <li>It can only name law sections from a short list checked against the Act. Anything else is deleted automatically.</li>
-          <li>It drafts the notice from your facts. It can still make mistakes, so read every line before you send it to the advocate.</li>
-          <li>It does not decide your case, promise an outcome, or give legal advice. Claimatic gives general information.</li>
+          <li>Your words are matched against the Consumer Protection Act, 2019 to see whether it appears to cover your complaint.</li>
+          <li>Only sections that exist in the Act are ever cited, checked one by one.</li>
+          <li>The notice is built from the facts you give, and anything you didn&apos;t say is left as a blank for you to fill in. Read every line before you send it to the advocate.</li>
+          <li>This first check is automatic and can be wrong. It does not decide your case or promise an outcome. The advocate makes the real call.</li>
         </ul>
       </section>
 
       <section className="ws-card" aria-labelledby="data">
         <h2 id="data">Where your information goes</h2>
         <ul>
-          <li><strong>Your pictures</strong> stay on your device. The text in them is read on your device. A picture goes to an AI only if you choose &ldquo;Check with AI&rdquo; for it.</li>
-          <li><strong>What you wrote about the problem</strong> is sent to an AI to check your case. Your name, address and contact details are not.</li>
+          <li><strong>Your pictures</strong> stay on your device. The text in them is read on your device. They are not uploaded.</li>
+          <li><strong>What you wrote about the problem</strong> is checked by Claimatic&apos;s own rules on its server. It is not stored, and it is not sent to any other service.</li>
           <li><strong>When you send your case to the advocate</strong>, your details, notice and pictures go to her by email, and Claimatic keeps your request so it can show you its status.</li>
           <li><strong>You can delete your request</strong> from Claimatic&apos;s server at any time before it is sent, using the link on your case page. The advocate keeps the email she already received.</li>
         </ul>

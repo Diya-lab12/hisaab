@@ -19,7 +19,7 @@ export default function Terms() {
         <ul>
           <li>Give true and complete facts. The notice is only as accurate as what you tell us.</li>
           <li>Read the draft before you send it to the advocate, and correct anything that is wrong.</li>
-          <li>The AI can make mistakes. It does not decide your case.</li>
+          <li>The first check is automatic and can be wrong. It does not decide your case.</li>
         </ul>
       </section>
 

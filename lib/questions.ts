@@ -104,7 +104,7 @@ export function questionFor(issue: string, id: string): Question | undefined {
   return QUESTIONS[(issue as IssueId) in QUESTIONS ? (issue as IssueId) : "other"].find((q) => q.id === id);
 }
 
-/** Human-readable "label: value" lines for the AI and for the review screen. */
+/** Human-readable "label: value" lines for the review screen. */
 export function answerLines(issue: string, answers: Record<string, string> | undefined): { label: string; value: string }[] {
   const out: { label: string; value: string }[] = [];
   const list = QUESTIONS[(issue as IssueId) in QUESTIONS ? (issue as IssueId) : "other"];

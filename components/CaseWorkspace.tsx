@@ -22,7 +22,6 @@ import { forgetRequest, sendToAdvocate, syncAdvocate } from "@/lib/advocateClien
 import NoticeLetterhead from "./NoticeLetterhead";
 import PayBox from "./PayBox";
 import PdfPreview from "./PdfPreview";
-import ExplainInLanguage from "./ExplainInLanguage";
 import CaseProgress from "./CaseProgress";
 import { ADDONS, TIERS, quote, rupees } from "@/lib/pricing";
 import { timingCheck, type Timing } from "@/lib/timing";
@@ -110,10 +109,7 @@ export default function CaseWorkspace({ rec }: { rec: CaseRecord }) {
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M7.5 12.5l3 3 6-7" /></svg>
                 Yes, your case falls under the Consumer Protection Act, 2019
               </h2>
-              {result.source === "rules" && (
-                <p className="callout warn">Answered with basic rules because the AI was unavailable. Treat this as a rough guide.</p>
-              )}
-              {!!result.removedCitations && (
+                            {!!result.removedCitations && (
                 <p className="callout warn">
                   {result.removedCitations} legal citation{result.removedCitations > 1 ? "s were" : " was"} removed because {result.removedCitations > 1 ? "they are" : "it is"} not in our checked list.
                 </p>
@@ -125,7 +121,6 @@ export default function CaseWorkspace({ rec }: { rec: CaseRecord }) {
                 {result.sections?.map((s) => <li key={s.id}><strong>Section {s.id}</strong> {s.why}</li>)}
               </ul>
               <p className="fine">Based only on what you wrote. This isn&apos;t a legal decision, so check these match your situation.</p>
-              <ExplainInLanguage result={result} />
             </section>
           )}
 
@@ -413,7 +408,7 @@ function ComplaintSection({ rec, pictureCount, onOpenEvidence }: { rec: CaseReco
       <h2 id="comp-h">Your legal notice (draft)</h2>
       <p className="draft-banner">Draft for advocate review. It isn&apos;t signed and hasn&apos;t been sent.</p>
       <p className="fine">
-        {rec.result?.source === "rules" ? "Built from a basic template." : "Written by AI from what you told us."} Read it, fix anything that isn&apos;t true, and edit it right here. Changes save automatically on this device. The advocate checks it again before signing.
+        Built from what you told us. Read it, fix anything that isn&apos;t true, and edit it right here. Changes save automatically on this device. The advocate checks it again before signing.
       </p>
       <div className="toolbar" role="group" aria-label="Notice actions">
         <button type="button" onClick={copy}>{copied ? "Copied!" : "Copy"}</button>

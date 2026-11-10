@@ -10,7 +10,7 @@
 //    the figure comes from the Consumer Protection (Consumer Disputes Redressal Commissions) Rules, 2020.
 // Check those two against the Rules before relying on them.
 //
-// This is the ONLY law the AI may cite.
+// This is the ONLY law the check may cite.
 
 export type LegalSection = { id: string; summary: string };
 

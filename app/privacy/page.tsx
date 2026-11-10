@@ -14,9 +14,8 @@ export default function Privacy() {
       </section>
 
       <section className="ws-card" aria-labelledby="p2">
-        <h2 id="p2">What is sent to an AI</h2>
-        <p>What you write about the problem, and your answers to the questions, are sent to an AI service to check your case. Your name, address and contact details are not. A picture is sent to an AI only if you choose &ldquo;Check with AI&rdquo; for that picture.</p>
-        <p>The wording helper and the &ldquo;explain in simple words&rdquo; feature send only the text you wrote or the result, never your personal details.</p>
+        <h2 id="p2">How your story is checked</h2>
+        <p>What you write about the problem is checked by Claimatic&apos;s own rules on its server, to see whether the Consumer Protection Act, 2019 appears to cover it. It is not stored, and it is not sent to any AI service or other outside service.</p>
       </section>
 
       <section className="ws-card" aria-labelledby="p3">

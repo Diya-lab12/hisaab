@@ -10,7 +10,6 @@ import Field from "./Field";
 import NoticeDoc from "./NoticeDoc";
 import { STORY_KEY } from "./StoryBox";
 import Stepper from "./Stepper";
-import WriteHelper from "./WriteHelper";
 import { makeEvent, newId, saveCase, type CaseEvent, type CaseRecord, type StorageKind } from "@/lib/cases";
 import { filingInfo, parseAmount, type ComplaintInput } from "@/lib/checks";
 import { NEW_SCOPE, forScope, rescopeEvidence, summarise, useAllEvidence } from "@/lib/evidence";
@@ -251,12 +250,11 @@ export default function StoryFlow({ existing, issue }: { existing?: CaseRecord |
 
         {step === 0 && (
           <>
-            <p className="help">Write it the way you&apos;d tell a friend. Hindi, Kannada, English or a mix is fine. We&apos;ll check it against the Act first, and ask for your details only at the end.</p>
+            <p className="help">Write it the way you&apos;d tell a friend, in English. We&apos;ll check it against the Act first, and ask for your details only at the end.</p>
             <Field id="f-story" label="Your story" required hint={story.trim().length >= 15 ? `${story.trim().length} characters. Add what the company said, if you can.` : "What you bought, what went wrong, and what the company said."} error={error && !loading && story.trim().length < 15 ? error : null}>
               {(b) => <textarea {...b} value={story} onChange={(e) => { setStory(e.target.value); setError(null); }} rows={8} placeholder={getIssue(facts.issueType)?.example} />}
             </Field>
-            <WriteHelper value={story} issueLabel={getIssue(facts.issueType)?.label ?? "consumer complaint"} onUse={setStory} />
-            <DataNote line="What you write here is checked by an AI. Please leave out your name, address and phone number for now." />
+            <DataNote line="Please leave out your name, address and phone number for now. You add them on the last step." />
           </>
         )}
 
@@ -294,7 +292,7 @@ export default function StoryFlow({ existing, issue }: { existing?: CaseRecord |
                 Still blank in the notice: {missing.map((k) => BLANK_DEFS[k].label.toLowerCase()).join(", ")}. You can <button type="button" className="link" onClick={() => setStep(2)}>fill them in</button>, or leave them and the advocate will ask you.
               </p>
             )}
-            <DataNote line="Your name, address and contact go on the notice. They are not sent to the AI." />
+            <DataNote line="Your name, address and contact go on the notice and are sent only to the advocate." />
           </>
         )}
 

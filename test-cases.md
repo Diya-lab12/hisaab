@@ -45,8 +45,6 @@ Run in the app (`npm run dev`). Pictures live in the open tab only, so reloading
 | P1 | Add a screenshot of a real payment receipt to "Payment receipt" | After a few seconds: "Looks right", and "What we found" lists the amount, company and date it read. The first picture is slower because the text reader downloads once |
 | P2 | Add a photo with no text, or a page of unrelated text, to "Payment receipt" | A warning ("Couldn't read text" or "Check this one") and a "Keep it anyway" button. The picture stays added |
 | P3 | Add a receipt showing a different amount than your case | "Not sure": the amount in it doesn't match the amount in your case |
-| P4 | Click "Check with AI" then Cancel | Nothing is sent. Check the Network tab: no request to /api/describe |
-| P5 | Click "Check with AI" then "Send this picture" | One request to /api/describe; the AI's description appears with "AI can be wrong" |
 | P6 | Add pictures in the saved workspace | They are checked the same way |
 | P7 | Go offline, add a first picture | "We couldn't read this picture on your device". It is still added |
 
@@ -74,4 +72,4 @@ Run in the app (`npm run dev`). Pictures live in the open tab only, so reloading
 | 24 | Open /case?id=nonsense | "We couldn't find this case" with ways forward |
 | 25 | Blank `OPENROUTER_API_KEY`, run #11 | Complaint built from a template, labelled as basic rules |
 
-Terminal lines "AI analysis failed" or "Section guard removed" mean the prompt needs another look.
+The case check uses keyword rules only, so there is no AI service to fail.

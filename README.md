@@ -10,7 +10,7 @@ What it does not do: send a notice to a company (it goes to an advocate for revi
 
 ```bash
 npm install
-cp .env.example .env.local   # then put your OpenRouter key in it
+cp .env.example .env.local   # no AI key is needed; add the email settings to send
 npm run dev                  # http://localhost:3000
 ```
 
@@ -29,16 +29,15 @@ Without a key the app still works using built-in keyword rules (`lib/analyze.ts`
 | Page 2: case, notice, next steps | `app/case/page.tsx`, `components/CaseTab.tsx`, `NoticeTab.tsx`, `NextStepsTab.tsx` |
 | Industry advice and evidence suggestions | `lib/categories.ts` |
 | Evidence checklist and pictures (in-browser only) | `lib/evidenceItems.ts`, `lib/evidence.ts`, `components/EvidenceSlots.tsx` |
-| Picture checks: on-device reading, rules, opt-in AI | `lib/ocr.ts`, `lib/pictureCheck.ts`, `lib/pictureReview.ts`, `app/api/describe/route.ts` |
+| Picture checks: on-device reading and rules | `lib/ocr.ts`, `lib/pictureCheck.ts`, `lib/pictureReview.ts` |
 | Deadlines, calendar reminder, PDF/Word/email helpers | `lib/deadlines.ts`, `lib/export.ts` |
 | Server route (key stays server-side) | `app/api/analyze/route.ts` |
-| AI call via OpenRouter | `lib/llm.ts`, `lib/prompt.ts` |
 | Keyword fallback | `lib/analyze.ts` |
 | Required fields, limits, forum, fee, time limit | `lib/checks.ts` |
 | Notice assembly (name, address, date, deadline filled by code) | `lib/notice.ts` |
-| The only law the AI may cite | `lib/legal-sources.ts` |
+| The only law the check may cite | `lib/legal-sources.ts` |
 
-Safeguards: required-field checks run before any AI call; any section not in `legal-sources.ts` is deleted from the answer; a notice containing placeholders is rejected; if the AI call fails the keyword rules answer instead.
+Safeguards: the check can only cite sections listed in `legal-sources.ts`; the notice is built in code, and any fact the story does not give is left as a blank; nothing is sent to the company without the advocate signing it.
 
 ## Before real use
 
@@ -62,4 +61,4 @@ Step 1, to make sending work: an SMTP email account in the hosting settings (see
 
 ## The story-first flow
 
-`/api/intake` takes the person's story, reads the company, amount and date (with the AI, or plain code if it is unavailable), and runs the same law check as before, with the same section guard. It is rate-limited per visitor (shared Redis when connected, in-memory otherwise). The notice is built in code (`lib/noticeBlanks.ts`): any fact the story doesn't give becomes a `{{blank}}` shown as a highlighted field in the document. `lib/companies.json` holds brands whose legal name, registered office and grievance email were read from the company's own pages (with the source URL). It is deliberately short and TODO to extend: leave a field `null` unless you have read it on an official page.
+`/api/intake` takes the person's story, reads the company, amount and date in plain code, and runs the keyword-rule law check over the verified sections. No AI service is used and no API key is needed. It is rate-limited per visitor (shared Redis when connected, in-memory otherwise). The notice is built in code (`lib/noticeBlanks.ts`): any fact the story doesn't give becomes a `{{blank}}` shown as a highlighted field in the document. `lib/companies.json` holds brands whose legal name, registered office and grievance email were read from the company's own pages (with the source URL). It is deliberately short and TODO to extend: leave a field `null` unless you have read it on an official page.

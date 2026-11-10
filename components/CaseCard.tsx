@@ -64,13 +64,12 @@ export default function CaseCard({ facts, result, onFacts }: { facts: Facts; res
 
       <section className="result-card" aria-labelledby="cc-result">
         <h2 id="cc-result">Your complaint appears to fall under the Consumer Protection Act, 2019</h2>
-        {result.source === "rules" && <p className="callout warn">Answered with basic rules because the AI was unavailable. Treat this as a rough guide.</p>}
         <p className="lede">{result.explanation}</p>
         <ul className="plain">
           {result.sections?.map((s) => <li key={s.id}><strong>Section {s.id}</strong> {s.why}</li>)}
         </ul>
         <p className="verified-tag"><span aria-hidden="true">✓</span> Section numbers checked against the Act</p>
-        <p className="fine">The AI chose which sections fit, and it can be wrong. This isn&apos;t a legal decision.</p>
+        <p className="fine">This is an automatic first check that matches your words to the Act, so it can be wrong. The advocate makes the real decision.</p>
         {forum && <p className="fine">Where you would file, for a claim of {formatRupees(amount)}: <strong>{forum.forum}</strong>. {forum.fee}</p>}
       </section>
 

@@ -4,9 +4,8 @@ import DataNote from "./DataNote";
 import { MAX_PER_SCOPE, addEvidence, forScope, removeEvidence, summarise, updateEvidence, useAllEvidence, type EvidenceImage } from "@/lib/evidence";
 import { OTHER_SLOT, evidenceFor } from "@/lib/evidenceItems";
 import { evidenceSummary, type CaseRecord } from "@/lib/cases";
-import { issueLabel } from "@/lib/issues";
 import type { CaseContext } from "@/lib/pictureCheck";
-import { askAi, reviewPicture } from "@/lib/pictureReview";
+import { reviewPicture } from "@/lib/pictureReview";
 
 export type EvidenceChange = { kind: "add" | "remove"; slot: string; count: number; names: string[] };
 
@@ -19,10 +18,8 @@ function needsLook(img: EvidenceImage) {
   return img.review?.state === "done" && WARN.has(img.review.check.status) && !img.kept;
 }
 
-function PictureCard({ img, item, issue, onRemove }: { img: EvidenceImage; item: { id: string; label: string; purpose: string }; issue: string; onRemove: () => void }) {
-  const [confirming, setConfirming] = useState(false);
+function PictureCard({ img, item, onRemove }: { img: EvidenceImage; item: { id: string; label: string; purpose: string }; onRemove: () => void }) {
   const r = img.review;
-  const ai = img.ai;
   const check = r?.state === "done" ? r.check : null;
 
   return (
@@ -58,36 +55,6 @@ function PictureCard({ img, item, issue, onRemove }: { img: EvidenceImage; item:
             {img.kept && WARN.has(check.status) && <p className="fine">You chose to keep this picture.</p>}
           </div>
         )}
-
-        {ai?.state === "done" && (
-          <div className={`pic-ai ${ai.matches}`}>
-            <p><strong>AI&apos;s view:</strong> {ai.description}</p>
-            <p>{ai.matches === "yes" ? "It looks like the right picture." : ai.matches === "no" ? "It may not be the right picture." : "It couldn't tell."} {ai.reason}</p>
-            <p className="fine">AI can be wrong. You decide what to keep.</p>
-          </div>
-        )}
-        {ai?.state === "failed" && <p className="pic-line">{ai.message}</p>}
-        {ai?.state === "asking" && <p className="pic-line" role="status"><span className="spin small" aria-hidden="true" /> Asking the AI…</p>}
-
-        {!ai && !confirming && (
-          <button type="button" className="link" onClick={() => setConfirming(true)}>Check with AI</button>
-        )}
-        {confirming && (
-          <div className="ai-confirm" role="group" aria-label="Send this picture to the AI?">
-            <p><strong>Send this one picture to an AI?</strong></p>
-            <p>It goes to an AI service (OpenRouter, which passes it to a Google Gemini model) so it can describe what it shows. Claimatic doesn&apos;t store it. Before you send, make sure it doesn&apos;t show card numbers, UPI IDs, OTPs, passwords or other people&apos;s faces.</p>
-            <div className="stack-row">
-              <button
-                type="button"
-                className="button small primary"
-                onClick={() => { setConfirming(false); void askAi(img, { slotLabel: item.label, purpose: item.purpose, issueLabel: issueLabel(issue) ?? "Complaint" }); }}
-              >
-                Send this picture
-              </button>
-              <button type="button" className="link" onClick={() => setConfirming(false)}>Cancel</button>
-            </div>
-          </div>
-        )}
       </div>
     </li>
   );
@@ -95,7 +62,7 @@ function PictureCard({ img, item, issue, onRemove }: { img: EvidenceImage; item:
 
 /**
  * The evidence checklist for one case: each item can hold pictures. Pictures stay in this tab, and
- * the text in them is read on this device. A picture goes to the AI only if you ask for it.
+ * the text in them is read on this device.
  */
 export default function EvidenceSlots({
   issue,
@@ -182,7 +149,7 @@ export default function EvidenceSlots({
         {mine.length > 0 && (
           <ul className="pics">
             {mine.map((img) => (
-              <PictureCard key={img.id} img={img} item={ITEM} issue={issue} onRemove={() => remove(img.id)} />
+              <PictureCard key={img.id} img={img} item={ITEM} onRemove={() => remove(img.id)} />
             ))}
           </ul>
         )}

@@ -3,9 +3,8 @@ import { analyze, notCoveredMatch } from "@/lib/analyze";
 import type { Analysis } from "@/lib/analyze";
 import { COMMON_TIP, INDUSTRIES, industryFor } from "@/lib/categories";
 import { filingInfo, parseAmount, type ComplaintInput } from "@/lib/checks";
-import { extractAI, extractRules } from "@/lib/extract";
+import { extractRules } from "@/lib/extract";
 import { getIssue } from "@/lib/issues";
-import { analyzeWithLLM } from "@/lib/llm";
 import { cleanTokens } from "@/lib/noticeBlanks";
 import { limited, str } from "@/lib/server/http";
 import { bumpCounter } from "@/lib/server/store";
@@ -27,8 +26,8 @@ async function tooMany(req: Request): Promise<boolean> {
 }
 
 /**
- * "Verdict first": takes the person's story in any language, pulls out the facts, and runs the same law check as
- * the full flow (same section guard). The answer is preliminary: it is built before we have their details.
+ * "Verdict first": takes the person's story, pulls out the facts, and runs the law check (keyword rules over the verified
+ * sections). The answer is preliminary: it is built before we have their details.
  */
 export async function POST(req: Request) {
   if (await tooMany(req)) return NextResponse.json({ error: "Too many checks from this connection. Please try again in a while." }, { status: 429 });
@@ -42,7 +41,7 @@ export async function POST(req: Request) {
   if (story.length < 15) return NextResponse.json({ error: "Tell us a little more: what you bought, what went wrong, and what the company said." }, { status: 400 });
 
   const hint = typeof body.issue === "string" ? body.issue : "";
-  const facts = (await extractAI(story)) ?? extractRules(story);
+  const facts = extractRules(story);
   if (facts.issueType === "other" && hint && getIssue(hint)) facts.issueType = getIssue(hint)!.id;
 
   const nc = notCoveredMatch(story);
@@ -61,22 +60,10 @@ export async function POST(req: Request) {
     answers: {},
   };
 
-  let result: Analysis;
-  let source: "ai" | "rules" = "ai";
-  let removedCitations = 0;
-  try {
-    const out = await analyzeWithLLM(input, { proceed: true, blanks: true });
-    result = out.analysis;
-    removedCitations = out.removedCitations;
-    if (result.status === "need_more_info") {
-      result = analyze({ ...input, company: facts.company || "the company" }, { force: true });
-      source = "rules";
-    }
-  } catch (e) {
-    console.error("AI check failed, using rule-based fallback:", e);
-    result = analyze({ ...input, company: facts.company || "the company" }, { force: true });
-    source = "rules";
-  }
+  // The check is plain keyword rules matched against the verified sections. Nothing is sent to any outside service.
+  const result: Analysis = analyze({ ...input, company: facts.company || "the company" }, { force: true });
+  const source = "rules";
+  const removedCitations = 0;
 
   if (result.status !== "covered") return NextResponse.json({ facts, result: { ...result, source, removedCitations } });
 

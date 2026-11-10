@@ -9,7 +9,7 @@ const ui = Inter({ subsets: ["latin"], variable: "--font-ui", display: "swap" })
 const paper = Source_Serif_4({ subsets: ["latin"], variable: "--font-paper", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Hisaab",
+  title: "Claimatic",
   description: "Your money. Your right. Check whether the Consumer Protection Act, 2019 covers your complaint and get a ready-to-send legal notice.",
 };
 

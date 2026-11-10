@@ -5,7 +5,7 @@ Run in the app (`npm run dev`). Pictures live in the open tab only, so reloading
 ## Home and navigation
 | # | Do this | Expect |
 |---|---|---|
-| 1 | Open the site | "Customer support going in circles?", "Start my complaint", "Explore an example", five situation cards, "How Hisaab helps" with four items |
+| 1 | Open the site | "Customer support going in circles?", "Start my complaint", "Explore an example", five situation cards, "How Claimatic helps" with four items |
 | 2 | Click each situation card | `/new?issue=...` opens with that card selected and questions that match it |
 | 3 | Use the header | Home, Example cases, My cases work and show the current page |
 

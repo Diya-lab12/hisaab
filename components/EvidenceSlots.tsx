@@ -74,7 +74,7 @@ function PictureCard({ img, item, issue, onRemove }: { img: EvidenceImage; item:
         {confirming && (
           <div className="ai-confirm" role="group" aria-label="Send this picture to the AI?">
             <p><strong>Send this one picture to an AI?</strong></p>
-            <p>It goes to an AI service (OpenRouter, which passes it to a Google Gemini model) so it can describe what it shows. Hisaab doesn&apos;t store it. Before you send, make sure it doesn&apos;t show card numbers, UPI IDs, OTPs, passwords or other people&apos;s faces.</p>
+            <p>It goes to an AI service (OpenRouter, which passes it to a Google Gemini model) so it can describe what it shows. Claimatic doesn&apos;t store it. Before you send, make sure it doesn&apos;t show card numbers, UPI IDs, OTPs, passwords or other people&apos;s faces.</p>
             <div className="stack-row">
               <button
                 type="button"
@@ -148,7 +148,7 @@ export default function EvidenceSlots({
       )}
       {anyRemembered && (
         <p className="callout warn">
-          Some items show pictures you added on an earlier visit. Hisaab doesn&apos;t save pictures, so add them again if you want to attach them to an email or an evidence pack.
+          Some items show pictures you added on an earlier visit. Claimatic doesn&apos;t save pictures, so add them again if you want to attach them to an email or an evidence pack.
         </p>
       )}
 
@@ -194,7 +194,7 @@ export default function EvidenceSlots({
           <rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
         </svg>
         <div>
-          <p><strong>Stays on this device.</strong> Pictures aren&apos;t uploaded or saved, and are cleared when you close the tab. Hisaab reads the text in them on your device. A picture leaves only if you choose &ldquo;Check with AI&rdquo; for it, or when you send your case to the advocate.</p>
+          <p><strong>Stays on this device.</strong> Pictures aren&apos;t uploaded or saved, and are cleared when you close the tab. Claimatic reads the text in them on your device. A picture leaves only if you choose &ldquo;Check with AI&rdquo; for it, or when you send your case to the advocate.</p>
           <details>
             <summary>What to hide first</summary>
             <ul>

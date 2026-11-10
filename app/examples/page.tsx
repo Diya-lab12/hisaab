@@ -2,14 +2,14 @@ import Link from "next/link";
 import IssueIcon from "@/components/IssueIcon";
 import { EXAMPLES } from "@/lib/examples";
 
-export const metadata = { title: "Example cases · Hisaab" };
+export const metadata = { title: "Example cases · Claimatic" };
 
 export default function Examples() {
   return (
     <main className="page narrow-page">
       <h1 className="page-h">Example cases</h1>
       <p className="lede">
-        See what a finished case looks like before you start. These are <strong>illustrative examples</strong>: fictional walkthroughs, not real customers and not results Hisaab achieved.
+        See what a finished case looks like before you start. These are <strong>illustrative examples</strong>: fictional walkthroughs, not real customers and not results Claimatic achieved.
       </p>
       <ul className="ex-list">
         {EXAMPLES.map((e) => (

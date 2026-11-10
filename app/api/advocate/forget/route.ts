@@ -3,7 +3,7 @@ import { trackingReady } from "@/lib/server/env";
 import { json, limited, str } from "@/lib/server/http";
 import { deleteSubmission, getSubmission } from "@/lib/server/store";
 
-/** The client deletes their own request, with their notice and details, from Hisaab's server. The advocate's email copy is hers to keep. */
+/** The client deletes their own request, with their notice and details, from Claimatic's server. The advocate's email copy is hers to keep. */
 export async function POST(req: Request) {
   if (!trackingReady().ok) return json({ error: "not_configured" }, 503);
   if (limited(req, "forget", 10, 60 * 60 * 1000)) return json({ error: "Too many requests." }, 429);

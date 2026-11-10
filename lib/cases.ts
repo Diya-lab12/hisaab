@@ -53,7 +53,7 @@ export type CaseRecord = {
   step: number;
   /** True when the browser refused to store it, so it exists only in this tab. */
   unsaved?: boolean;
-  /** Set when the case was sent to the advocate through Hisaab. The token is the client's secret for checking status. */
+  /** Set when the case was sent to the advocate through Claimatic. The token is the client's secret for checking status. */
   submission?: { ref: string; token: string; email: string; sentAt: string; lastStatus: string; note?: string; tracked?: boolean; addons?: string[]; payment?: { ref: string; amount: number; items: { id: string; label: string; price: number }[]; utr: string; verified: boolean } | null };
 };
 

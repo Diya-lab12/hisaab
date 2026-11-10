@@ -22,10 +22,10 @@ const transporter = nodemailer.createTransport({
 
 try {
   const info = await transporter.sendMail({
-    from: process.env.MAIL_FROM || `Hisaab <${process.env.SMTP_USER}>`,
+    from: process.env.MAIL_FROM || `Claimatic <${process.env.SMTP_USER}>`,
     to,
-    subject: "Hisaab: test email",
-    text: "This is a test email from Hisaab. If you can read it, the email setup works.",
+    subject: "Claimatic: test email",
+    text: "This is a test email from Claimatic. If you can read it, the email setup works.",
   });
   console.log("Sent:", info.messageId);
 } catch (e) {

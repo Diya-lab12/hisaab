@@ -271,8 +271,8 @@ function FollowUp({ rec }: { rec: CaseRecord }) {
             onClick={() =>
               downloadIcs(
                 {
-                  title: `Hisaab: follow up with ${rec.input.company}`,
-                  description: "Check whether the company replied to your complaint. Open your case in Hisaab on the same device to record what happened.",
+                  title: `Claimatic: follow up with ${rec.input.company}`,
+                  description: "Check whether the company replied to your complaint. Open your case in Claimatic on the same device to record what happened.",
                   dateIso: rec.followUpDate,
                 },
                 safeName(rec.input.company) + "-follow-up",
@@ -283,7 +283,7 @@ function FollowUp({ rec }: { rec: CaseRecord }) {
           </button>
         )}
       </div>
-      <p className="fine">We only show whether it&apos;s due when you open Hisaab. We don&apos;t send reminders.</p>
+      <p className="fine">We only show whether it&apos;s due when you open Claimatic. We don&apos;t send reminders.</p>
     </div>
   );
 }
@@ -483,7 +483,7 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
     }
     mutateCase(rec.id, () => ({
       patch: { status: "ready", submission: undefined },
-      events: [makeEvent("status", "Deleted your request from Hisaab's server. The advocate's email copy is hers to keep.", false)],
+      events: [makeEvent("status", "Deleted your request from Claimatic's server. The advocate's email copy is hers to keep.", false)],
     }));
     setForgetting(null);
   }
@@ -521,7 +521,7 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
           {sub.tracked !== false && sub.lastStatus !== "sent" && (
             forgetting ? (
               <div className="callout" role="group" aria-label="Delete my request">
-                <p>Delete your request, notice and details from Hisaab&apos;s server? The advocate keeps the email she already received. This can&apos;t be undone.</p>
+                <p>Delete your request, notice and details from Claimatic&apos;s server? The advocate keeps the email she already received. This can&apos;t be undone.</p>
                 {forgetError && <p className="msg error" role="alert">{forgetError}</p>}
                 <div className="stack-row">
                   <button type="button" className="button small danger" onClick={forget} disabled={forgetting === "busy"}>{forgetting === "busy" ? "Deleting…" : "Yes, delete it"}</button>
@@ -529,7 +529,7 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
                 </div>
               </div>
             ) : (
-              <button type="button" className="link" onClick={() => setForgetting("ask")}>Delete my request from Hisaab&apos;s server</button>
+              <button type="button" className="link" onClick={() => setForgetting("ask")}>Delete my request from Claimatic&apos;s server</button>
             )
           )}
         </div>
@@ -575,7 +575,7 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
           <label className="consent">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
             <span>
-              I agree to send my name, address, contact details, this notice and my evidence pictures to {ADVOCATE.name}, Advocate, so she can review it and act for me. They are sent by email. Hisaab also keeps my details and the notice so it can show my status.
+              I agree to send my name, address, contact details, this notice and my evidence pictures to {ADVOCATE.name}, Advocate, so she can review it and act for me. They are sent by email. Claimatic also keeps my details and the notice so it can show my status.
             </span>
           </label>
 
@@ -592,7 +592,7 @@ function AdvocatePanel({ rec, text, images, pictureCount, onOpenEvidence, onDown
                 <a
                   className="button small primary"
                   href={advocateMailto(ADVOCATE.reviewEmail, {
-                    subject: `Hisaab review request: ${rec.input.company}`,
+                    subject: `Claimatic review request: ${rec.input.company}`,
                     summary: reviewSummary(rec, pictureCount),
                     draft: text,
                   })}
@@ -628,7 +628,7 @@ function reviewSummary(rec: CaseRecord, pictureCount: number): string {
     `Relevant date: ${i.incidentDate}`,
     `Client would like: ${resolutionLabel(i.resolution, i.resolutionOther) || "not stated"}`,
     `Evidence: ${pictureCount} picture${pictureCount === 1 ? "" : "s"} (evidence pack attached)`,
-    `Hisaab case reference: ${rec.id}`,
+    `Claimatic case reference: ${rec.id}`,
   ];
   return lines.join("\n");
 }

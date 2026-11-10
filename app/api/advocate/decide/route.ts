@@ -86,7 +86,7 @@ export async function POST(req: Request) {
     action === "quote"
       ? (amount === 0
           ? `${ADVOCATE.name}, Advocate, has read your case about ${sub.company.brand} and can take it. She has waived the fee.`
-          : `${ADVOCATE.name}, Advocate, has read your case about ${sub.company.brand} and can take it.\n\nThe fee for this case is ${rupees(amount)}${sub.payment!.items.length ? ` (it includes: ${sub.payment!.items.map((i) => i.label.toLowerCase()).join(", ")})` : ""}.\n\nOpen your Hisaab case in the same browser you used to send it, pay by UPI, and enter the transaction ID. After she sees the payment she will sign the notice and send it to the company. If she can't go ahead, you get a full refund.`)
+          : `${ADVOCATE.name}, Advocate, has read your case about ${sub.company.brand} and can take it.\n\nThe fee for this case is ${rupees(amount)}${sub.payment!.items.length ? ` (it includes: ${sub.payment!.items.map((i) => i.label.toLowerCase()).join(", ")})` : ""}.\n\nOpen your Claimatic case in the same browser you used to send it, pay by UPI, and enter the transaction ID. After she sees the payment she will sign the notice and send it to the company. If she can't go ahead, you get a full refund.`)
     : action === "approve"
       ? `${ADVOCATE.name}, Advocate (${ADVOCATE.council}, Enrolment No. ${ADVOCATE.enrolment}) has reviewed and approved your notice about ${sub.company.brand}.${pdf ? " The signed notice is attached." : ""}`
       : action === "sent"
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
     await sendMail({
       to: sub.client.email,
       subject,
-      text: `Hello ${sub.client.name},\n\n${body}${note ? `\n\nNote from the advocate: ${note}` : ""}\n\nYour Hisaab case has been updated. Open it in the same browser you used to send it.\n\nHisaab provides general information, not legal advice.`,
+      text: `Hello ${sub.client.name},\n\n${body}${note ? `\n\nNote from the advocate: ${note}` : ""}\n\nYour Claimatic case has been updated. Open it in the same browser you used to send it.\n\nClaimatic provides general information, not legal advice.`,
       attachments: pdf ? [{ filename: `Notice-${sub.id}.pdf`, contentBase64: pdf, contentType: "application/pdf" }] : [],
     });
   } catch {

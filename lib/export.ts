@@ -137,9 +137,9 @@ export function downloadIcs(opts: { title: string; description: string; dateIso:
   const ics = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Hisaab//EN",
+    "PRODID:-//Claimatic//EN",
     "BEGIN:VEVENT",
-    `UID:${d}-${Math.random().toString(36).slice(2)}@hisaab`,
+    `UID:${d}-${Math.random().toString(36).slice(2)}@claimatic`,
     `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}Z`,
     `DTSTART;VALUE=DATE:${d}`,
     `DTEND;VALUE=DATE:${end}`,

@@ -1,6 +1,6 @@
 import AdvocateDashboard from "@/components/AdvocateDashboard";
 
-export const metadata = { title: "Advocate approvals · Hisaab", robots: { index: false, follow: false } };
+export const metadata = { title: "Advocate approvals · Claimatic", robots: { index: false, follow: false } };
 
 export default function AdvocatePage() {
   return (

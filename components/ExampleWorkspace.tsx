@@ -14,7 +14,7 @@ export default function ExampleWorkspace({ example: e }: { example: Example }) {
       <p className="badge illus">Illustrative example</p>
       <h1 className="page-h">{e.title}</h1>
       <p className="callout">
-        This is a fictional walkthrough. The people, amounts, dates and documents are made up, and it is not a real customer or a result Hisaab achieved.
+        This is a fictional walkthrough. The people, amounts, dates and documents are made up, and it is not a real customer or a result Claimatic achieved.
       </p>
 
       <section className="ws-card" aria-labelledby="ex-sit">

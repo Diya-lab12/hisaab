@@ -30,7 +30,7 @@ export type SendResult =
   | { ok: true; ref: string; token: string; tracked: boolean }
   | { ok: false; code: "not_configured" | "too_large" | "error"; message: string };
 
-/** Sends the notice and the evidence pack to the advocate through Hisaab, in one go. */
+/** Sends the notice and the evidence pack to the advocate through Claimatic, in one go. */
 export async function sendToAdvocate(rec: CaseRecord, v: { email: string; noticeText: string; images: Pic[]; addons?: string[] }): Promise<SendResult> {
   const pack = await evidencePack(v.images, rec.input.company);
   if (!pack) return { ok: false, code: "too_large", message: "Your pictures are too large to send together. Remove a few, or use smaller screenshots." };
@@ -110,7 +110,7 @@ export async function reportPayment(rec: CaseRecord, utr: string): Promise<{ ok:
   }
 }
 
-/** Deletes the request, with the notice and details, from Hisaab's server. Returns an error message, or null on success. */
+/** Deletes the request, with the notice and details, from Claimatic's server. Returns an error message, or null on success. */
 export async function forgetRequest(rec: CaseRecord): Promise<string | null> {
   const s = rec.submission;
   if (!s?.token) return "This request can't be deleted from here.";

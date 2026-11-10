@@ -43,7 +43,7 @@ export default function HeroStats() {
         <p className="hs-label"><strong>About 1 in 3</strong> cases in the consumer commissions has been waiting for more than three years.</p>
       </div>
 
-      <p className="hs-foot">Many people never start, because the first step is hard. Hisaab makes it easier.</p>
+      <p className="hs-foot">Many people never start, because the first step is hard. Claimatic makes it easier.</p>
       <p className="hs-src fine">
         Sources: Ministry of Consumer Affairs reply in Parliament (2025), rounded; India Justice Report, Consumer Justice Report 2026, as reported by{" "}
         <a href="https://www.theweek.in/news/india/2026/03/18/vacancies-backlog-choke-consumer-courts-1-in-3-cases-pending-over-three-years-ijr-report.amp.html" target="_blank" rel="noreferrer">The Week</a>. The dots on top only show the pace.

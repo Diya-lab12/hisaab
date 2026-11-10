@@ -91,7 +91,7 @@ export default function AdvocateDashboard() {
       const r = await fetch("/api/advocate/decide", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action, note, signedPdf, amount: fee === "" ? undefined : Number(fee) }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error ?? "Something went wrong.");
-      setMsg(action === "paid" ? "Marked as received." : action === "quote" ? "Done. The client has been emailed the fee and can pay from their Hisaab case." : (d.warning ?? "Done. The client has been emailed and their Hisaab case will update."));
+      setMsg(action === "paid" ? "Marked as received." : action === "quote" ? "Done. The client has been emailed the fee and can pay from their Claimatic case." : (d.warning ?? "Done. The client has been emailed and their Claimatic case will update."));
       setNote("");
       setPdf(null);
       await load();

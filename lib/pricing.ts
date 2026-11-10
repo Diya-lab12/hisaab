@@ -41,7 +41,7 @@ export type Payment = { ref: string; utr: string; addons: string[] };
 export function upiAccount(): { id: string; name: string } | null {
   const id = process.env.NEXT_PUBLIC_UPI_ID?.trim();
   if (!id || !/^[\w.\-]{2,}@[A-Za-z][\w.\-]{1,}$/.test(id)) return null;
-  return { id, name: process.env.NEXT_PUBLIC_UPI_NAME?.trim() || "Hisaab" };
+  return { id, name: process.env.NEXT_PUBLIC_UPI_NAME?.trim() || "Claimatic" };
 }
 
 /** A upi:// link. Phones open it in a payment app; the QR code carries the same link. */

@@ -573,7 +573,7 @@ a:not([class]) { color: var(--primary); }
 .situation:hover svg, .issue:hover svg, .ex-card:hover .ex-icon, .issue.picked svg { background: #fff; color: var(--primary); }
 .ex-card { padding: 20px; column-gap: 16px; border-width: 1px; }
 
-/* How Hisaab helps: pale-teal numbers, thin cool-grey connectors */
+/* How Claimatic helps: pale-teal numbers, thin cool-grey connectors */
 .how { counter-reset: how; gap: 24px 32px; grid-template-columns: 1fr; }
 .how li { border-top: 0; padding-top: 0; position: relative; }
 .how li::before { width: 30px; height: 30px; margin-bottom: 10px; background: var(--primary-soft); color: var(--primary); font-weight: 650; border: 1px solid #cfe3e6; }
@@ -709,3 +709,9 @@ details[open]::details-content { block-size: auto; }
 .hs-src { margin: 0; }
 .hs-src a { color: var(--primary); }
 @media (min-width: 960px) { .hero { grid-template-columns: minmax(0, 1fr) 360px; } }
+
+/* Claimatic wordmark: the gavel mark as an image, the name as type */
+.logo { gap: 10px; }
+.logo .logo-mark { height: 38px; width: auto; }
+.logo-word { font-weight: 800; font-size: 1.6rem; letter-spacing: -0.01em; line-height: 1; color: var(--primary); }
+@media (max-width: 720px) { .logo .logo-mark { height: 30px; } .logo-word { font-size: 1.3rem; } }

@@ -306,7 +306,7 @@ export default function ComplaintWizard({ initial, existing }: { initial?: Parti
 
                 {timing.state === "too_early" && timing.dueIso && (
                   <p className="callout warn" role="status">
-                    <strong>It may be too early for a notice.</strong> {timing.basis} That gives the company until {longDate(timing.dueIso)} ({timing.daysLeft === 0 ? "today is its last day" : `${timing.daysLeft} day${timing.daysLeft === 1 ? "" : "s"} left`}). You can still prepare everything now. Hisaab will hold the advocate review until then, unless they have already refused in writing.
+                    <strong>It may be too early for a notice.</strong> {timing.basis} That gives the company until {longDate(timing.dueIso)} ({timing.daysLeft === 0 ? "today is its last day" : `${timing.daysLeft} day${timing.daysLeft === 1 ? "" : "s"} left`}). You can still prepare everything now. Claimatic will hold the advocate review until then, unless they have already refused in writing.
                   </p>
                 )}
                 {timing.state === "ready" && timing.dueIso && (

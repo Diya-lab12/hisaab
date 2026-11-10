@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     await sendMail({
       to: ADVOCATE.reviewEmail,
       replyTo: email,
-      subject: `${addons.includes("priority") ? "PRIORITY " : ""}Hisaab review request ${id}: ${sub.company.brand} (₹${Number(sub.amount).toLocaleString("en-IN")})`,
+      subject: `${addons.includes("priority") ? "PRIORITY " : ""}Claimatic review request ${id}: ${sub.company.brand} (₹${Number(sub.amount).toLocaleString("en-IN")})`,
       text: [
         `A client has asked you to review a legal notice.`,
         ``,
@@ -113,7 +113,7 @@ export async function POST(req: Request) {
     await sendMail({
       to: email,
       subject: `Your notice has been sent to the advocate (ref ${id})`,
-      text: `Hello ${sub.client.name},\n\nYour draft notice about ${sub.company.brand} has been sent to ${ADVOCATE.name}, Advocate (${ADVOCATE.council}), for review.\n\nReference: ${id}\n${upiAccount() ? `You pay nothing yet. If the advocate can take your case, she will tell you the fee for it, and you pay only then, before the notice goes to the company.\n` : ""}\nNothing has been sent to the company yet. ${tracked ? "You will get an email when the advocate responds, and the status in your Hisaab case will update." : "The advocate will reply to you by email. Your Hisaab case does not update by itself, so you can record updates there yourself."}\n\nHisaab provides general information, not legal advice.`,
+      text: `Hello ${sub.client.name},\n\nYour draft notice about ${sub.company.brand} has been sent to ${ADVOCATE.name}, Advocate (${ADVOCATE.council}), for review.\n\nReference: ${id}\n${upiAccount() ? `You pay nothing yet. If the advocate can take your case, she will tell you the fee for it, and you pay only then, before the notice goes to the company.\n` : ""}\nNothing has been sent to the company yet. ${tracked ? "You will get an email when the advocate responds, and the status in your Claimatic case will update." : "The advocate will reply to you by email. Your Claimatic case does not update by itself, so you can record updates there yourself."}\n\nClaimatic provides general information, not legal advice.`,
     });
   } catch {
     /* ignore */

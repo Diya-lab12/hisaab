@@ -19,7 +19,7 @@ export async function sendMail(m: MailInput): Promise<{ sent: boolean; outbox?: 
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
     await transporter.sendMail({
-      from: process.env.MAIL_FROM || `Hisaab <${process.env.SMTP_USER}>`,
+      from: process.env.MAIL_FROM || `Claimatic <${process.env.SMTP_USER}>`,
       to: m.to,
       subject: m.subject,
       text: m.text,

@@ -1,12 +1,11 @@
 import Link from "next/link";
-import LogoMark from "./LogoMark";
 
-/** The Claimatic logo: the gavel mark and the name set in type. */
+/** The Claimatic logo: the gavel and the name, as supplied by the founder (public/logo.png). */
 export default function Logo({ href = "/" }: { href?: string }) {
   return (
     <Link href={href} className="logo" aria-label="Claimatic home">
-      <LogoMark className="logo-mark" />
-      <span className="logo-word">Claimatic</span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="logo-img" src="/logo.png" alt="Claimatic" width={1852} height={453} />
     </Link>
   );
 }

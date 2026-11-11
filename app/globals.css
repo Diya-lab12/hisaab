@@ -941,3 +941,7 @@ button.situation { font: inherit; text-align: left; cursor: pointer; color: inhe
 .side-steps p { margin: 0; color: var(--body); font-size: .95rem; line-height: 1.6; max-width: 40ch; }
 @media (min-width: 1000px) { .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 380px); } .side-steps { padding-top: var(--s5); } }
 @media (max-width: 999px) { .side-steps { padding-top: var(--s2); } }
+
+/* The supplied logo image (public/logo.png): one picture, so no per-part animation */
+.logo .logo-img { height: 44px; width: auto; display: block; animation: none; transform: none; }
+@media (max-width: 720px) { .logo .logo-img { height: 34px; } }

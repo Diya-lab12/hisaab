@@ -1,6 +1,5 @@
 "use client";
 import { useMemo } from "react";
-import DataNote from "./DataNote";
 import EvidenceSlots from "./EvidenceSlots";
 import type { CaseRecord } from "@/lib/cases";
 import { forScope, useAllEvidence } from "@/lib/evidence";
@@ -37,7 +36,6 @@ export default function EvidenceStep({ issue, scope, saved, company, amount }: {
         <p className="fine">An estimate from reading the text in your pictures on your device. It can miss things, and it doesn&apos;t predict the outcome. The advocate checks everything.</p>
       </div>
       <EvidenceSlots issue={issue} scope={scope} saved={saved} context={{ company, amount }} />
-      <DataNote line="Pictures stay on this device until you send your case to the advocate." />
     </div>
   );
 }

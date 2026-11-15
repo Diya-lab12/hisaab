@@ -835,7 +835,7 @@ h3, h4 { font-family: var(--font-ui), system-ui, sans-serif; }
 html, body { overflow-x: clip; }
 
 /* ---------------- Notice as an A4 document (v2) ---------------- */
-.a4 { position: relative; width: 100%; max-width: 794px; margin: var(--s2) auto; aspect-ratio: 210 / 297; background: #fff; border: 1px solid var(--line); border-top: 4px solid var(--primary); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(24px, 6vw, 64px); overflow: hidden; font-family: var(--font-paper), Georgia, serif; color: #1d2530; }
+.a4 { position: relative; width: 100%; max-width: 794px; margin: var(--s2) auto; aspect-ratio: 210 / 297; background: #fff; border: 1px solid var(--line); border-top: 4px solid var(--primary); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(24px, 6vw, 64px); overflow: clip; font-family: var(--font-paper), Georgia, serif; color: #1d2530; }
 .a4-letterhead { position: relative; z-index: 1; display: grid; gap: 2px; padding-bottom: var(--s2); margin-bottom: var(--s3); border-bottom: 1px solid var(--line); font-family: var(--font-ui), system-ui, sans-serif; font-size: .85rem; color: var(--muted); }
 .a4-letterhead strong { color: var(--ink); font-family: var(--font-display), Georgia, serif; font-size: 1.2rem; }
 .a4 textarea { position: relative; z-index: 1; display: block; width: 100%; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; color: inherit; font: inherit; font-size: clamp(.95rem, 2.2vw, 1.02rem); line-height: 1.75; resize: none; overflow: hidden; min-height: 320px; }
@@ -945,3 +945,13 @@ button.situation { font: inherit; text-align: left; cursor: pointer; color: inhe
 /* The supplied logo image (public/logo.png): one picture, so no per-part animation */
 .logo .logo-img { height: 44px; width: auto; display: block; animation: none; transform: none; }
 @media (max-width: 720px) { .logo .logo-img { height: 34px; } }
+
+/* A failed AI or email call: shown with a Try again button, never hidden. */
+.callout.error { background: #fdf0ef; border-color: var(--danger); color: var(--ink); }
+.callout.error p { margin: 0 0 8px; color: var(--danger); font-weight: 600; }
+.case-card textarea#cc-english-text { width: 100%; font: inherit; border: 1.5px solid var(--line); border-radius: var(--radius); padding: 10px 12px; background: var(--surface); color: inherit; margin-top: 6px; resize: vertical; }
+
+/* The notice page keeps its A4 shape as a minimum but grows to fit the whole notice, so nothing is cut off.
+   (overflow: clip, unlike hidden, lets the box grow with its content and still trims the rotated watermark.) */
+.a4 { height: auto; }
+.a4 .a4-edit { overflow: auto; resize: vertical; min-height: 70vh; field-sizing: content; }

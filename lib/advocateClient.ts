@@ -1,6 +1,6 @@
 import { ADVOCATE } from "./advocate";
 import { mutateCase, type CaseRecord, type CaseStatus } from "./cases";
-import { evidencePdfBlob, noticePdfBlob } from "./export";
+import { evidencePdfBlob } from "./export";
 import { parseAmount } from "./checks";
 import { resolutionLabel } from "./questions";
 
@@ -30,11 +30,10 @@ export type SendResult =
   | { ok: true; ref: string; token: string; tracked: boolean }
   | { ok: false; code: "not_configured" | "too_large" | "error"; message: string };
 
-/** Sends the notice and the evidence pack to the advocate through Claimatic, in one go. */
+/** Sends the notice text and the evidence pack to the advocate through Claimatic. The server makes the notice PDF. */
 export async function sendToAdvocate(rec: CaseRecord, v: { email: string; noticeText: string; images: Pic[]; addons?: string[] }): Promise<SendResult> {
   const pack = await evidencePack(v.images, rec.input.company);
   if (!pack) return { ok: false, code: "too_large", message: "Your pictures are too large to send together. Remove a few, or use smaller screenshots." };
-  const notice = await noticePdfBlob(v.noticeText);
   const i = rec.input;
   try {
     const res = await fetch("/api/advocate/submit", {
@@ -52,12 +51,11 @@ export async function sendToAdvocate(rec: CaseRecord, v: { email: string; notice
         noticeText: v.noticeText,
         evidenceCount: v.images.length,
         addons: v.addons ?? [],
-        noticePdf: await toBase64(notice),
         evidencePdf: await toBase64(pack),
       }),
     });
     const d = await res.json().catch(() => ({}));
-    if (res.status === 503 && d.error === "not_configured") return { ok: false, code: "not_configured", message: "Sending straight to the advocate isn't switched on yet." };
+    if (res.status === 503 && d.error === "not_configured") return { ok: false, code: "not_configured", message: "Sending to the advocate isn't switched on yet, so nothing was sent. Please try again later." };
     if (!res.ok) return { ok: false, code: "error", message: d.error ?? "Something went wrong. Nothing was sent." };
     return { ok: true, ref: d.ref, token: d.token ?? "", tracked: d.tracked !== false };
   } catch {

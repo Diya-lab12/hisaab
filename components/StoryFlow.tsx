@@ -26,6 +26,10 @@ const BUTTONS = ["Check my case", "Draft my notice", "Add evidence", "Continue",
 
 type Saved = { where: "device" | "session" | "memory"; at: number } | null;
 
+/** What the notice draft depends on. When any of it changes, the notice is drafted again. */
+const draftKey = (english: string, f: Facts, r: Result | null) =>
+  JSON.stringify([english.trim(), f.company.trim(), f.amount, f.incidentDate, f.orderRef, f.resolution, (r?.sections ?? []).map((x) => x.id)]);
+
 function factsFromInput(i: ComplaintInput): Facts {
   return { issueType: cleanIssue(i.issueType) || "other", company: i.company, amount: i.amount.replace(/[^\d]/g, ""), incidentDate: i.incidentDate, resolution: i.resolution ?? "", orderRef: "" } as Facts;
 }
@@ -56,6 +60,12 @@ export default function StoryFlow({ existing, issue }: { existing?: CaseRecord |
   const [facts, setFacts] = useState<Facts>(() => f0?.facts ?? (existing ? factsFromInput(existing.input) : EMPTY_FACTS));
   const [result, setResult] = useState<Result | null>(f0?.result ?? null);
   const [noticeBody, setNoticeBody] = useState(f0?.noticeBody ?? "");
+  const [english, setEnglish] = useState(f0?.english ?? "");
+  const [language, setLanguage] = useState(f0?.language ?? "");
+  const [askMore, setAskMore] = useState<{ reason: string; questions: string[] } | null>(null);
+  const [drafted, setDrafted] = useState(() => (f0?.noticeBody ? draftKey(f0.english ?? "", f0.facts, f0.result) : ""));
+  const [busy, setBusy] = useState<"check" | "draft" | null>(null);
+  const [retry, setRetry] = useState<"check" | "draft" | null>(null);
   const [blanks, setBlanks] = useState<Record<string, string>>(f0?.blanks ?? {});
   const [override, setOverride] = useState<string | null>(null);
   const [checkedStory, setCheckedStory] = useState(f0?.result ? f0.story : "");
@@ -115,7 +125,7 @@ export default function StoryFlow({ existing, issue }: { existing?: CaseRecord |
     };
   };
   const detailChecks = (["name", "address", "contact"] as const).map((k) => ({ k, ...checkField(k, toInput()) }));
-  const flowState = () => ({ story, facts, result, noticeBody, blanks });
+  const flowState = () => ({ story, facts, result, noticeBody, blanks, english, language });
 
   /** Saves (or updates) this case. Pictures are moved over to it, and stay only in this tab. */
   function persist(patch: Partial<CaseRecord>, events: CaseEvent[] = []): CaseRecord {
@@ -149,16 +159,25 @@ export default function StoryFlow({ existing, issue }: { existing?: CaseRecord |
       return;
     }
     setLoading(true);
+    setBusy("check");
     setError(null);
+    setRetry(null);
+    setAskMore(null);
     try {
       const res = await fetch("/api/intake", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ story, issue }) });
-      const data = await res.json();
-      if (!res.ok) setError(data.error ?? "Something went wrong. Your story is still here, so try again.");
-      else if (data.result?.status === "not_covered") setOutside(data.result);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Your story is still here, so try again.");
+        setRetry(res.status === 429 || res.status === 400 ? null : "check");
+      } else if (data.result?.status === "not_covered") setOutside(data.result);
+      else if (data.result?.status === "need_more_info") setAskMore({ reason: data.result.explanation ?? "", questions: data.result.missing ?? [] });
       else {
         setFacts(data.facts);
         setResult(data.result);
-        setNoticeBody(data.noticeBody ?? "");
+        setEnglish(data.english ?? "");
+        setLanguage(data.language ?? "");
+        setNoticeBody("");
+        setDrafted("");
         setCheckedStory(story);
         setOverride(null);
         try {
@@ -170,8 +189,51 @@ export default function StoryFlow({ existing, issue }: { existing?: CaseRecord |
       }
     } catch {
       setError("Network problem. Your story is still here, so try again.");
+      setRetry("check");
     }
     setLoading(false);
+    setBusy(null);
+  }
+
+  /** Drafts the notice with the AI from the confirmed facts and English account. Only then moves on to the notice. */
+  async function runDraft() {
+    if (!result || result.status !== "covered") return;
+    const key = draftKey(english, facts, result);
+    if (noticeBody && drafted === key) {
+      setStep(2);
+      return;
+    }
+    if (english.trim().length < 15) {
+      setError("Please check the English version of your story first: it's needed to draft the notice.");
+      return;
+    }
+    setLoading(true);
+    setBusy("draft");
+    setError(null);
+    setRetry(null);
+    try {
+      const res = await fetch("/api/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Only the confirmed facts and the English account. Name, address and contact are never sent.
+        body: JSON.stringify({ english, facts: { company: facts.company, amount: facts.amount, incidentDate: facts.incidentDate, orderRef: facts.orderRef, resolution: facts.resolution }, sections: (result.sections ?? []).map((x) => x.id) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.noticeBody) {
+        setError(data.error ?? "We couldn't draft your notice. Your answers are still here, so try again.");
+        setRetry(res.status === 429 ? null : "draft");
+      } else {
+        setNoticeBody(data.noticeBody);
+        setDrafted(key);
+        setOverride(null);
+        setStep(2);
+      }
+    } catch {
+      setError("Network problem. Your answers are still here, so try again.");
+      setRetry("draft");
+    }
+    setLoading(false);
+    setBusy(null);
   }
 
   function finish() {
@@ -197,6 +259,10 @@ export default function StoryFlow({ existing, issue }: { existing?: CaseRecord |
     if (step === 0) {
       if (result && story === checkedStory) setStep(1);
       else void runCheck();
+      return;
+    }
+    if (step === 1) {
+      void runDraft();
       return;
     }
     if (step === LAST) {
@@ -250,19 +316,26 @@ export default function StoryFlow({ existing, issue }: { existing?: CaseRecord |
 
         {step === 0 && (
           <>
-            <p className="help">Write it the way you&apos;d tell a friend, in English. We&apos;ll check it against the Act first, and ask for your details only at the end.</p>
+            <p className="help">Write it the way you&apos;d tell a friend, in any language: English, Hindi, Kannada, or a mix like Hinglish. We&apos;ll show you an English version to check, and ask for your details only at the end.</p>
             <Field id="f-story" label="Your story" required hint={story.trim().length >= 15 ? `${story.trim().length} characters. Add what the company said, if you can.` : "What you bought, what went wrong, and what the company said."} error={error && !loading && story.trim().length < 15 ? error : null}>
               {(b) => <textarea {...b} value={story} onChange={(e) => { setStory(e.target.value); setError(null); }} rows={8} placeholder={getIssue(facts.issueType)?.example} />}
             </Field>
+            {askMore && (
+              <div className="callout warn" role="status">
+                <p><strong>We need a little more to check your case.</strong> {askMore.reason}</p>
+                {askMore.questions.length > 0 && <ul>{askMore.questions.map((q, i) => <li key={i}>{q}</li>)}</ul>}
+                <p className="fine">Add the answers to your story above, then press Check my case again.</p>
+              </div>
+            )}
             <DataNote line="Please leave out your name, address and phone number for now. You add them on the last step." />
           </>
         )}
 
-        {step === 1 && result && <CaseCard facts={facts} result={result} onFacts={setFacts} />}
+        {step === 1 && result && <CaseCard facts={facts} result={result} onFacts={setFacts} english={english} language={language} onEnglish={setEnglish} />}
 
         {step === 2 && (
           <>
-            <p className="help">This is your draft notice, already written from your story. The highlighted blanks are facts we still need. Fill them in and the notice updates.</p>
+            <p className="help">This is your draft notice, written by AI from the facts you confirmed. It cites only verified sections of the Act, and anything you didn&apos;t tell us is a highlighted blank. Fill the blanks in, read every line, and the advocate checks it before anything is sent.</p>
             <NoticeDoc template={template} values={blanks} onValue={setBlank} override={override} onOverride={setOverride} plain={plain} />
           </>
         )}
@@ -296,8 +369,13 @@ export default function StoryFlow({ existing, issue }: { existing?: CaseRecord |
           </>
         )}
 
-        {error && step !== 0 && <p className="error" role="alert">{error}</p>}
-        {loading && <CheckingSteps />}
+        {error && !(step === 0 && story.trim().length < 15) && (
+          <div className="callout error" role="alert">
+            <p>{error}</p>
+            {retry && <button type="button" className="ghost" onClick={() => (retry === "draft" ? runDraft() : runCheck())} disabled={loading}>Try again</button>}
+          </div>
+        )}
+        {loading && <CheckingSteps mode={busy === "draft" ? "draft" : "check"} />}
       </div>
 
       <p className="draft-status fine" role="status">
@@ -313,7 +391,7 @@ export default function StoryFlow({ existing, issue }: { existing?: CaseRecord |
       <div className="wiz-bar">
         {step > 0 ? <button type="button" className="ghost" onClick={() => setStep(step - 1)} disabled={loading}>Back</button> : <span />}
         <button type="button" className="ghost save" onClick={saveDraft} disabled={loading}>Save draft</button>
-        <button type="submit" className="cta" disabled={loading}>{loading ? "Checking…" : nextLabel}</button>
+        <button type="submit" className="cta" disabled={loading}>{loading ? (busy === "draft" ? "Drafting…" : "Checking…") : nextLabel}</button>
       </div>
     </form>
   );

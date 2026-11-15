@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ADVOCATE } from "@/lib/advocate";
 import { ADDONS, TIERS, rupees } from "@/lib/pricing";
+import { AI_CHECK, AI_DATA } from "@/lib/aiRole";
 
 /** Who reviews your notice, how your case is checked, and what it costs. Shared by the home page and the how-it-works page. */
 export default function TrustSection() {
@@ -18,11 +19,9 @@ export default function TrustSection() {
         <article className="trust-card">
           <h3>How your case is checked</h3>
           <ul>
-            <li>Your words are matched against the Consumer Protection Act, 2019 to see whether it appears to cover your complaint.</li>
-            <li>Only sections that exist in the Act are ever cited, checked one by one.</li>
-            <li>The notice is built from the facts you give. Anything you didn&apos;t say is left as a blank for you to fill in.</li>
-            <li>This first check is automatic and can be wrong. The advocate makes the real call, and nothing is sent without her signature.</li>
+            {AI_CHECK.map((x) => <li key={x}>{x}</li>)}
           </ul>
+          <p className="fine">{AI_DATA}</p>
         </article>
 
         <article className="trust-card">

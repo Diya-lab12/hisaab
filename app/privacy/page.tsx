@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AI_DATA } from "@/lib/aiRole";
 
 export const metadata = { title: "Privacy" };
 
@@ -15,7 +16,8 @@ export default function Privacy() {
 
       <section className="ws-card" aria-labelledby="p2">
         <h2 id="p2">How your story is checked</h2>
-        <p>What you write about the problem is checked on Claimatic&apos;s server, to see whether the Consumer Protection Act, 2019 appears to cover it. To read your story, the server sends that text to Google&apos;s Gemini AI service, which returns the company, amount, date and a short explanation. The law sections and your notice are built by Claimatic&apos;s own rules, not by the AI. Claimatic does not store the story. Please do not include your name, phone number or address in it. If the AI service is unavailable, Claimatic&apos;s own rules read the story instead.</p>
+        <p>{AI_DATA}</p>
+        <p>The AI writes your story out in English, checks whether the Consumer Protection Act, 2019 appears to cover it, and drafts your notice. It may cite only sections from Claimatic&apos;s verified list; our server removes anything else and rejects drafts that cite court cases or state facts you didn&apos;t confirm. If the AI service is unavailable, you see an error and can try again; nothing is checked by any other means. Please leave your name, phone number and address out of your story: you add them on the last step, and they go only into the notice and to the advocate.</p>
       </section>
 
       <section className="ws-card" aria-labelledby="p3">

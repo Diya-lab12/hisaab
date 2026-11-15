@@ -53,7 +53,7 @@ export default function StoryBox() {
         aria-invalid={Boolean(error)}
         aria-describedby="home-story-msg"
       />
-      <p id="home-story-msg" className={error ? "msg error" : "fine"} role={error ? "alert" : undefined}>{error ?? "Write it in English. Don't include your name or address yet."}</p>
+      <p id="home-story-msg" className={error ? "msg error" : "fine"} role={error ? "alert" : undefined}>{error ?? "Write it in any language: English, Hindi, Kannada or a mix. Don't include your name or address yet."}</p>
       <div className="story-actions">
         <button type="submit" className="cta">Check my case</button>
         <Link href="/examples" className="link">or see an example</Link>

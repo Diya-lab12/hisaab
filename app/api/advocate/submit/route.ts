@@ -2,6 +2,7 @@ import { ADVOCATE } from "@/lib/advocate";
 import { sendReady, trackingReady } from "@/lib/server/env";
 import { EMAIL, json, limited, originOf, str } from "@/lib/server/http";
 import { sendMail } from "@/lib/server/mail";
+import { noticePdfBase64 } from "@/lib/server/noticePdf";
 import { deleteSubmission, putSubmission, type Submission } from "@/lib/server/store";
 import { hashToken, newRef, newToken } from "@/lib/server/auth";
 import { ADDONS, upiAccount } from "@/lib/pricing";
@@ -12,7 +13,10 @@ const MAX_PDF_B64 = 3_400_000; // about 2.5 MB of PDF
 
 export async function POST(req: Request) {
   const ready = sendReady();
-  if (!ready.ok) return json({ error: "not_configured", missing: ready.missing }, 503);
+  if (!ready.ok) {
+    console.error(`Send to advocate refused: missing ${ready.missing.join(", ")}`);
+    return json({ error: "not_configured", missing: ready.missing }, 503);
+  }
   const tracked = trackingReady().ok; // without storage the email still goes, but nothing can be tracked
   if (limited(req, "submit", 5, 60 * 60 * 1000)) return json({ error: "Too many requests. Please try again in a while." }, 429);
 
@@ -26,7 +30,6 @@ export async function POST(req: Request) {
   const company = (b.company ?? {}) as Record<string, unknown>;
   const email = str(client.email, 160).trim();
   const notice = str(b.noticeText, 30_000);
-  const noticePdf = str(b.noticePdf, MAX_PDF_B64 + 1);
   const evidencePdf = str(b.evidencePdf, MAX_PDF_B64 + 1);
 
   if (b.consent !== true) return json({ error: "Please agree to send your details to the advocate." }, 400);
@@ -34,7 +37,6 @@ export async function POST(req: Request) {
   if (!str(client.name, 100).trim() || !str(client.address, 300).trim()) return json({ error: "Your name and address are needed." }, 400);
   if (!str(company.brand, 100).trim() || !notice.trim()) return json({ error: "The company and the notice are needed." }, 400);
   if (!evidencePdf || evidencePdf.length > MAX_PDF_B64) return json({ error: "Evidence is required, and it must be small enough to send. Try fewer or smaller pictures." }, 400);
-  if (noticePdf.length > MAX_PDF_B64) return json({ error: "The notice file is too large." }, 400);
 
   // Extras are only a wish at this point. Nothing is charged until the advocate has read the case and approved it.
   const addons = (Array.isArray(b.addons) ? b.addons.filter((x): x is string => typeof x === "string") : []).filter((id) => ADDONS.some((a) => a.id === id)).slice(0, 10);
@@ -61,6 +63,15 @@ export async function POST(req: Request) {
     addons,
     history: [{ at: now, text: "Received by the advocate for review." }],
   };
+
+  // The notice PDF is made here on the server, from exactly the text being submitted.
+  let noticePdf: string;
+  try {
+    noticePdf = noticePdfBase64(notice, id);
+  } catch {
+    console.error("Notice PDF could not be generated");
+    return json({ error: "We couldn't make the notice PDF, so nothing was sent. Please try again." }, 500);
+  }
 
   if (tracked) await putSubmission(sub);
   const dashboard = `${originOf(req)}/advocate`;
@@ -99,13 +110,14 @@ export async function POST(req: Request) {
         notice,
       ].join("\n"),
       attachments: [
-        ...(noticePdf ? [{ filename: `Draft-notice-${id}.pdf`, contentBase64: noticePdf, contentType: "application/pdf" }] : []),
+        { filename: `Draft-notice-${id}.pdf`, contentBase64: noticePdf, contentType: "application/pdf" },
         { filename: `Evidence-pack-${id}.pdf`, contentBase64: evidencePdf, contentType: "application/pdf" },
       ],
     });
-  } catch {
+  } catch (e) {
     if (tracked) await deleteSubmission(id);
-    return json({ error: "We couldn't reach the advocate's inbox, so nothing was sent. Please try again." }, 502);
+    if (e instanceof Error && e.message === "not_configured") return json({ error: "not_configured", missing: sendReady().missing }, 503);
+    return json({ error: "We couldn't reach the advocate's inbox, so nothing was sent. Please try again.", retry: true }, 502);
   }
 
   // A confirmation to the client. If it fails, the request still stands: the advocate has it.

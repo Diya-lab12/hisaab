@@ -22,7 +22,7 @@ function Chip({ label, children, found }: { label: string; children: React.React
 }
 
 /** The "verdict first" screen: what we understood, whether the Act covers it, what time is left, and who would review it. */
-export default function CaseCard({ facts, result, onFacts }: { facts: Facts; result: Result; onFacts: (f: Facts) => void }) {
+export default function CaseCard({ facts, result, onFacts, english, language, onEnglish }: { facts: Facts; result: Result; onFacts: (f: Facts) => void; english: string; language: string; onEnglish: (v: string) => void }) {
   const set = <K extends keyof Facts>(k: K, v: Facts[K]) => onFacts({ ...facts, [k]: v });
   const amount = parseAmount(facts.amount);
   const stub: ComplaintInput = { name: "", address: "", contact: "", company: facts.company, amount: facts.amount, incidentDate: facts.incidentDate, description: "", issueType: facts.issueType };
@@ -34,6 +34,16 @@ export default function CaseCard({ facts, result, onFacts }: { facts: Facts; res
   return (
     <div className="case-card">
       <p className="prelim">Preliminary, based on what you&apos;ve told us so far</p>
+
+      <section aria-labelledby="cc-english">
+        <h2 id="cc-english">Your story in English</h2>
+        <p className="fine">
+          {language && !/^english$/i.test(language) ? <>We read your story in {language} and wrote it out in English. </> : <>We wrote your story out clearly in English. </>}
+          Check that it says what happened, and fix anything that&apos;s wrong. Your notice is drafted from this.
+        </p>
+        <label htmlFor="cc-english-text" className="sr-only">Your story in English</label>
+        <textarea id="cc-english-text" value={english} onChange={(e) => onEnglish(e.target.value)} rows={5} />
+      </section>
 
       <section aria-labelledby="cc-facts">
         <h2 id="cc-facts">What we understood</h2>
@@ -69,7 +79,7 @@ export default function CaseCard({ facts, result, onFacts }: { facts: Facts; res
           {result.sections?.map((s) => <li key={s.id}><strong>Section {s.id}</strong> {s.why}</li>)}
         </ul>
         <p className="verified-tag"><span aria-hidden="true">✓</span> Section numbers checked against the Act</p>
-        <p className="fine">This is an automatic first check that matches your words to the Act, so it can be wrong. The advocate makes the real decision.</p>
+        <p className="fine">This first check is done by AI, using only the verified sections above, so it can be wrong. The advocate makes the real decision.</p>
         {forum && <p className="fine">Where you would file, for a claim of {formatRupees(amount)}: <strong>{forum.forum}</strong>. {forum.fee}</p>}
       </section>
 

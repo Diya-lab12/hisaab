@@ -4,7 +4,7 @@ import StatsBand from "@/components/StatsBand";
 import TrustSection from "@/components/TrustSection";
 
 const STEPS = [
-  { t: "Tell us what happened", d: "Write it in your own words. We check it against the Consumer Protection Act, 2019 first." },
+  { t: "Tell us what happened", d: "Write it in your own words, in any language. AI checks it against the verified sections of the Consumer Protection Act, 2019." },
   { t: "See your case", d: "We show what we understood, whether the Act appears to cover it, and how much time you have left to file." },
   { t: "Get your notice", d: "The notice is written from your story. Fill in any blanks and add your receipts and screenshots." },
   { t: "An advocate signs it", d: "She reads your case, signs the notice and sends it to the company. You pay only if she takes your case." },

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ADVOCATE } from "@/lib/advocate";
 import { ADDONS, TIERS, rupees } from "@/lib/pricing";
+import { AI_CHECK, AI_DATA } from "@/lib/aiRole";
 
 export const metadata = { title: "How it works and who reviews it" };
 
@@ -23,10 +24,7 @@ export default function HowItWorks() {
       <section className="ws-card" aria-labelledby="what">
         <h2 id="what">How your case is checked</h2>
         <ul>
-          <li>Your words are matched against the Consumer Protection Act, 2019 to see whether it appears to cover your complaint.</li>
-          <li>Only sections that exist in the Act are ever cited, checked one by one.</li>
-          <li>The notice is built from the facts you give, and anything you didn&apos;t say is left as a blank for you to fill in. Read every line before you send it to the advocate.</li>
-          <li>This first check is automatic and can be wrong. It does not decide your case or promise an outcome. The advocate makes the real call.</li>
+          {AI_CHECK.map((x) => <li key={x}>{x}</li>)}
         </ul>
       </section>
 
@@ -34,7 +32,7 @@ export default function HowItWorks() {
         <h2 id="data">Where your information goes</h2>
         <ul>
           <li><strong>Your pictures</strong> stay on your device. The text in them is read on your device. They are not uploaded.</li>
-          <li><strong>What you wrote about the problem</strong> is checked by Claimatic&apos;s own rules on its server. It is not stored, and it is not sent to any other service.</li>
+          <li><strong>What you wrote about the problem:</strong> {AI_DATA}</li>
           <li><strong>When you send your case to the advocate</strong>, your details, notice and pictures go to her by email, and Claimatic keeps your request so it can show you its status.</li>
           <li><strong>You can delete your request</strong> from Claimatic&apos;s server at any time before it is sent, using the link on your case page. The advocate keeps the email she already received.</li>
         </ul>

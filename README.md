@@ -10,11 +10,11 @@ What it does not do: send a notice to a company (it goes to an advocate for revi
 
 ```bash
 npm install
-cp .env.example .env.local   # AI key is optional (GEMINI_API_KEY); add the email settings to send
+cp .env.example .env.local   # add GEMINI_API_KEY and the SMTP email settings
 npm run dev                  # http://localhost:3000
 ```
 
-Set `GEMINI_API_KEY` to let Gemini read the story (company, amount, date, category, explanation). Without a key the app still works using built-in keyword rules (`lib/analyze.ts`). The legal sections and notice always come from code and the verified list.
+`GEMINI_API_KEY` is required: Gemini reads the story in any language, writes an English account for the person to confirm, decides whether the Act appears to cover it, and drafts the notice body. There is no keyword fallback: if the AI fails, the person sees an error with a retry. `GET /api/health` returns `aiConfigured` and `emailConfigured` (booleans only). For testing email, set `MAIL_TEST_TO` so every email goes to that address.
 
 ## How it works
 
@@ -32,7 +32,7 @@ Set `GEMINI_API_KEY` to let Gemini read the story (company, amount, date, catego
 | Picture checks: on-device reading and rules | `lib/ocr.ts`, `lib/pictureCheck.ts`, `lib/pictureReview.ts` |
 | Deadlines, calendar reminder, PDF/Word/email helpers | `lib/deadlines.ts`, `lib/export.ts` |
 | Server route (key stays server-side) | `app/api/analyze/route.ts` |
-| Keyword fallback | `lib/analyze.ts` |
+| AI calls (story read, verdict, notice draft) | `lib/server/gemini.ts` |
 | Required fields, limits, forum, fee, time limit | `lib/checks.ts` |
 | Notice assembly (name, address, date, deadline filled by code) | `lib/notice.ts` |
 | The only law the check may cite | `lib/legal-sources.ts` |
@@ -61,4 +61,4 @@ Step 1, to make sending work: an SMTP email account in the hosting settings (see
 
 ## The story-first flow
 
-`/api/intake` takes the person's story, reads the company, amount and date in plain code, and runs the keyword-rule law check over the verified sections. Gemini is optional: with `GEMINI_API_KEY` set (`lib/server/gemini.ts`) it fills the facts, picks the category and writes the explanation; every value is checked against the story and anything doubtful falls back to the rules. It is rate-limited per visitor (shared Redis when connected, in-memory otherwise). The notice is built in code (`lib/noticeBlanks.ts`): any fact the story doesn't give becomes a `{{blank}}` shown as a highlighted field in the document. `lib/companies.json` holds brands whose legal name, registered office and grievance email were read from the company's own pages (with the source URL). It is deliberately short and TODO to extend: leave a field `null` unless you have read it on an official page.
+`/api/intake` sends the person's story to the AI, which returns the English account, facts and verdict. The AI calls live in `lib/server/gemini.ts`: `readStory` (English account, facts, verdict, sections) and `draftNotice` (body paragraphs). Sections outside `legal-sources.ts` are stripped; drafts that cite other sections, court cases or other laws, or that state amounts or dates other than the confirmed ones, are rejected. The person's name, address and contact are never sent to the AI. `/api/draft` drafts the notice; `/api/advocate/submit` builds the notice PDF on the server (`lib/server/noticePdf.ts`) and emails it with the evidence pack. It is rate-limited per visitor (shared Redis when connected, in-memory otherwise). The notice frame (letterhead, addressee, deadline, signature) is built in code (`lib/noticeBlanks.ts`) around the AI-drafted body: any fact the person didn't give becomes a `{{blank}}` shown as a highlighted field in the document. `lib/companies.json` holds brands whose legal name, registered office and grievance email were read from the company's own pages (with the source URL). It is deliberately short and TODO to extend: leave a field `null` unless you have read it on an official page.

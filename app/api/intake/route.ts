@@ -1,18 +1,14 @@
 import { NextResponse } from "next/server";
-import { analyze, notCoveredMatch, CATEGORY_NAMES } from "@/lib/analyze";
-import type { Analysis } from "@/lib/analyze";
 import { COMMON_TIP, INDUSTRIES, industryFor } from "@/lib/categories";
-import { filingInfo, parseAmount, type ComplaintInput } from "@/lib/checks";
-import { extractRules } from "@/lib/extract";
+import { filingInfo, parseAmount } from "@/lib/checks";
+import { NOTICE_DEADLINE_DAYS } from "@/lib/config";
 import { getIssue } from "@/lib/issues";
-import { cleanTokens } from "@/lib/noticeBlanks";
 import { limited, str } from "@/lib/server/http";
 import { bumpCounter } from "@/lib/server/store";
-import { geminiRead } from "@/lib/server/gemini";
+import { aiError } from "@/lib/server/aiErrors";
+import { readStory } from "@/lib/server/gemini";
 
 export const maxDuration = 60;
-
-const NOT_YET = "Not provided yet";
 
 /** Per-visitor limit. Uses the shared database when it is connected, and falls back to a weaker in-memory count. */
 async function tooMany(req: Request): Promise<boolean> {
@@ -27,8 +23,10 @@ async function tooMany(req: Request): Promise<boolean> {
 }
 
 /**
- * "Verdict first": takes the person's story, pulls out the facts, and runs the law check (keyword rules over the verified
- * sections). The answer is preliminary: it is built before we have their details.
+ * "Verdict first": the AI reads the story (any language), writes a clear English account for the person to confirm,
+ * pulls out the facts, and decides whether the Act appears to cover it. Sections outside the verified list are stripped
+ * in lib/server/gemini.ts. If the AI fails, the person gets a clear error and can retry: there is no keyword fallback.
+ * Only the story is sent to the AI. The person's name, address and contact are asked for later and never sent to it.
  */
 export async function POST(req: Request) {
   if (await tooMany(req)) return NextResponse.json({ error: "Too many checks from this connection. Please try again in a while." }, { status: 429 });
@@ -41,59 +39,45 @@ export async function POST(req: Request) {
   const story = str(body.story, 2000).trim();
   if (story.length < 15) return NextResponse.json({ error: "Tell us a little more: what you bought, what went wrong, and what the company said." }, { status: 400 });
 
+  const r = await readStory(story);
+  if (!r.ok) return aiError(r, "check your case");
+  const { read } = r;
+  const facts = { ...read.facts };
   const hint = typeof body.issue === "string" ? body.issue : "";
-  const facts = extractRules(story);
   if (facts.issueType === "other" && hint && getIssue(hint)) facts.issueType = getIssue(hint)!.id;
+  const base = { source: "ai" as const, removedCitations: read.removedCitations };
+  const english = { language: read.language, english: read.english };
 
-  // Optional AI read. It only fills facts and picks one of our own categories; anything unchecked falls back to the rules.
-  const ai = await geminiRead(story, CATEGORY_NAMES());
-  if (ai) {
-    const g = ai.facts;
-    if (g.company) facts.company = g.company;
-    if (g.amount) facts.amount = g.amount;
-    if (g.incidentDate) facts.incidentDate = g.incidentDate;
-    if (g.resolution) facts.resolution = g.resolution;
-    if (g.issueType && (g.issueType !== "other" || facts.issueType === "other")) facts.issueType = g.issueType;
+  if (read.verdict === "not_covered") {
+    return NextResponse.json({ facts, ...english, result: { ...base, status: "not_covered", not_covered_reason: read.reason, alternatives: read.alternatives } });
+  }
+  if (read.verdict === "need_more_info") {
+    return NextResponse.json({ facts, ...english, result: { ...base, status: "need_more_info", explanation: read.reason, missing: read.missing } });
   }
 
-  const nc = notCoveredMatch(story);
-  if (nc) return NextResponse.json({ facts, result: { status: "not_covered", ...nc, source: "precheck", removedCitations: 0 } });
-
-  const input: ComplaintInput = {
-    name: NOT_YET,
-    address: NOT_YET,
-    contact: NOT_YET,
-    company: facts.company,
-    amount: facts.amount,
-    incidentDate: facts.incidentDate,
-    description: story,
-    issueType: facts.issueType,
-    resolution: facts.resolution,
-    answers: {},
-  };
-
-  // The law check runs on our own rules and the verified sections. If AI was used, it only chose the category and wrote the plain-language explanation.
-  const result: Analysis = analyze({ ...input, company: facts.company || "the company" }, { force: true, category: ai?.category || undefined });
-  if (result.status === "covered" && ai?.explanation) result.explanation = ai.explanation;
-  const source = ai ? "ai" : "rules";
-  const removedCitations = 0;
-
-  if (result.status !== "covered") return NextResponse.json({ facts, result: { ...result, source, removedCitations } });
-
-  const { noticeBody, ...rest } = result;
+  const company = facts.company || "the company";
   const fallback = getIssue(facts.issueType)?.fallbackIndustry ?? "other";
-  const industryId = industryFor(facts.company, story, fallback);
+  const industryId = industryFor(facts.company, read.english, fallback);
   const industry = INDUSTRIES[industryId];
   return NextResponse.json({
     facts,
+    ...english,
     result: {
-      ...rest,
-      source,
-      removedCitations,
+      ...base,
+      status: "covered",
+      explanation: read.reason,
+      sections: read.sections,
+      relief: ["Refund of the amount paid, with interest", "Compensation for harassment and inconvenience", "The cost of filing the case"],
+      steps: [
+        `Collect your proof: the payment receipt or order ID, screenshots of your chats with ${company}, and any emails.`,
+        `Complain to ${company}'s customer support or grievance officer in writing and keep the complaint number.`,
+        "Send the legal notice by email and by registered post. A notice is a smart first step, not a legal requirement before filing.",
+        `Wait ${NOTICE_DEADLINE_DAYS} days for a reply.`,
+        "If there is no fair reply, file a complaint online at e-Jagriti (e-jagriti.gov.in) with the District Commission where you live or work.",
+      ],
       industry: { id: industryId, label: industry.label },
       tips: [...industry.tips, COMMON_TIP],
       filing: parseAmount(facts.amount) > 0 ? filingInfo(parseAmount(facts.amount)) : undefined,
     },
-    noticeBody: cleanTokens(noticeBody),
   });
 }

@@ -53,7 +53,7 @@ export type CaseRecord = {
   /** Furthest wizard step reached, so a draft can be continued. */
   step: number;
   /** The "story first" flow: what the person wrote, what we pulled out of it, and the blanks they have filled so far. */
-  flow?: { story: string; facts: Facts; result: Result | null; noticeBody: string; blanks: Record<string, string> };
+  flow?: { story: string; facts: Facts; result: Result | null; noticeBody: string; blanks: Record<string, string>; english?: string; language?: string };
   /** True when the browser refused to store it, so it exists only in this tab. */
   unsaved?: boolean;
   /** Set when the case was sent to the advocate through Claimatic. The token is the client's secret for checking status. */

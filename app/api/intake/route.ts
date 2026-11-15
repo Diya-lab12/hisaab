@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { analyze, notCoveredMatch } from "@/lib/analyze";
+import { analyze, notCoveredMatch, CATEGORY_NAMES } from "@/lib/analyze";
 import type { Analysis } from "@/lib/analyze";
 import { COMMON_TIP, INDUSTRIES, industryFor } from "@/lib/categories";
 import { filingInfo, parseAmount, type ComplaintInput } from "@/lib/checks";
@@ -8,6 +8,7 @@ import { getIssue } from "@/lib/issues";
 import { cleanTokens } from "@/lib/noticeBlanks";
 import { limited, str } from "@/lib/server/http";
 import { bumpCounter } from "@/lib/server/store";
+import { geminiRead } from "@/lib/server/gemini";
 
 export const maxDuration = 60;
 
@@ -44,6 +45,17 @@ export async function POST(req: Request) {
   const facts = extractRules(story);
   if (facts.issueType === "other" && hint && getIssue(hint)) facts.issueType = getIssue(hint)!.id;
 
+  // Optional AI read. It only fills facts and picks one of our own categories; anything unchecked falls back to the rules.
+  const ai = await geminiRead(story, CATEGORY_NAMES());
+  if (ai) {
+    const g = ai.facts;
+    if (g.company) facts.company = g.company;
+    if (g.amount) facts.amount = g.amount;
+    if (g.incidentDate) facts.incidentDate = g.incidentDate;
+    if (g.resolution) facts.resolution = g.resolution;
+    if (g.issueType && (g.issueType !== "other" || facts.issueType === "other")) facts.issueType = g.issueType;
+  }
+
   const nc = notCoveredMatch(story);
   if (nc) return NextResponse.json({ facts, result: { status: "not_covered", ...nc, source: "precheck", removedCitations: 0 } });
 
@@ -60,9 +72,10 @@ export async function POST(req: Request) {
     answers: {},
   };
 
-  // The check is plain keyword rules matched against the verified sections. Nothing is sent to any outside service.
-  const result: Analysis = analyze({ ...input, company: facts.company || "the company" }, { force: true });
-  const source = "rules";
+  // The law check runs on our own rules and the verified sections. If AI was used, it only chose the category and wrote the plain-language explanation.
+  const result: Analysis = analyze({ ...input, company: facts.company || "the company" }, { force: true, category: ai?.category || undefined });
+  if (result.status === "covered" && ai?.explanation) result.explanation = ai.explanation;
+  const source = ai ? "ai" : "rules";
   const removedCitations = 0;
 
   if (result.status !== "covered") return NextResponse.json({ facts, result: { ...result, source, removedCitations } });

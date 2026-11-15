@@ -1,4 +1,5 @@
-// Rule-based analysis: keyword rules decide the verdict. No AI is involved.
+// Rule-based analysis: keyword rules decide the verdict by default. When the server has an AI key, it may pass the category it picked
+// (opts.category) from the list below. The sections and the notice still come only from this file and the verified list.
 import { NOTICE_DEADLINE_DAYS } from "./config";
 import { ComplaintInput, formatDate, formatRupees, parseAmount } from "./checks";
 import { answerLines } from "./questions";
@@ -160,7 +161,9 @@ function wordCount(s: string): number {
   return s.trim().split(/\s+/).filter(Boolean).length;
 }
 
-export function analyze(input: ComplaintInput, opts: { force?: boolean } = {}): Analysis {
+export const CATEGORY_NAMES = (): string[] => CATEGORIES.map((c) => c.name);
+
+export function analyze(input: ComplaintInput, opts: { force?: boolean; category?: string } = {}): Analysis {
   const text = input.description.toLowerCase();
 
   for (const n of NOT_COVERED) {
@@ -172,6 +175,9 @@ export function analyze(input: ComplaintInput, opts: { force?: boolean } = {}): 
   const scored = CATEGORIES.map((c) => ({ c, score: c.keywords.filter((k) => k.test(text)).length }))
     .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score);
+
+  const chosen = opts.category ? CATEGORIES.find((c) => c.name === opts.category) : undefined;
+  if (chosen) scored.unshift({ c: chosen, score: 99 });
 
   const preferred = CATEGORIES.find((c) => c.name === PREFERRED[input.issueType ?? ""]);
   if (!scored.length && preferred && wordCount(input.description) >= 4) scored.push({ c: preferred, score: 1 });
@@ -199,8 +205,9 @@ export function analyze(input: ComplaintInput, opts: { force?: boolean } = {}): 
   });
 
   const company = input.company.trim();
-  const amount = formatRupees(parseAmount(input.amount));
-  const date = formatDate(input.incidentDate);
+  // A fact the story didn't give stays a fill-in blank (see lib/noticeBlanks.ts) instead of printing "₹0" or an empty date.
+  const amount = parseAmount(input.amount) > 0 ? formatRupees(parseAmount(input.amount)) : "{{amount}}";
+  const date = input.incidentDate && !isNaN(Date.parse(input.incidentDate)) ? formatDate(input.incidentDate) : "{{incident_date}}";
   const facts = input.description.trim().replace(/\s+/g, " ");
   const extra = answerLines(input.issueType ?? "", input.answers).map((l) => `${l.label} ${l.value}`.replace(/\?\s*/, ": ")).join(". ");
 

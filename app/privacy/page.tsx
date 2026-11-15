@@ -15,7 +15,7 @@ export default function Privacy() {
 
       <section className="ws-card" aria-labelledby="p2">
         <h2 id="p2">How your story is checked</h2>
-        <p>What you write about the problem is checked by Claimatic&apos;s own rules on its server, to see whether the Consumer Protection Act, 2019 appears to cover it. It is not stored, and it is not sent to any AI service or other outside service.</p>
+        <p>What you write about the problem is checked on Claimatic&apos;s server, to see whether the Consumer Protection Act, 2019 appears to cover it. To read your story, the server sends that text to Google&apos;s Gemini AI service, which returns the company, amount, date and a short explanation. The law sections and your notice are built by Claimatic&apos;s own rules, not by the AI. Claimatic does not store the story. Please do not include your name, phone number or address in it. If the AI service is unavailable, Claimatic&apos;s own rules read the story instead.</p>
       </section>
 
       <section className="ws-card" aria-labelledby="p3">

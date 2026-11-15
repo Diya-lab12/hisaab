@@ -27,9 +27,9 @@ export function extractRules(story: string, now = new Date()): Facts {
 
   const lower = t.toLowerCase();
   f.issueType = /subscri|renew|auto-?debit|cancel(?:l)?ed.*charg|charged.*after/.test(lower) ? "subscription"
+    : /broken|defect|faulty|not working|stopped working|damaged/.test(lower) ? "faulty" // a damaged item is the problem; a refund is only what the person wants
     : /refund|returned|return(?:ed)?\b/.test(lower) ? "refund"
     : /never (?:arrived|came|delivered)|not delivered|didn'?t (?:arrive|come)|delivery/.test(lower) ? "delivery"
-    : /broken|defect|faulty|not working|stopped working|damaged/.test(lower) ? "faulty"
     : "other";
   f.resolution = /refund|money back/.test(lower) ? "refund" : /replace/.test(lower) ? "replacement" : /repair/.test(lower) ? "repair" : "";
 
